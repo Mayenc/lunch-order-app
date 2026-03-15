@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<title>Bữa trưa - NCG</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body data-page="user">
+
+<div class="phone">
+
+<header>
+<div class="logo">🍱 Đặt cơm trưa</div>
+</header>
+
+<section>
+<div class="titleRow">
+<div id="deadlineText" class="deadlineText" style="font-size: 15px;"></div>
+</div>
+
+
+<div class="card">
+
+<label style="font-weight: bold;">Tên + phòng ban</label>
+<input id="name" placeholder="Tèo IT">
+
+<label style="font-weight: bold;">Chọn món ăn</label>
+<select id="dishSelect"></select>
+
+<label style="font-weight: bold;">Lưu ý</label>
+<input id="note" placeholder="Lưu ý cho món ăn">
+
+<button id="orderBtn" style="width: 100%;">Đặt cơm</button>
+
+</div>
+<div class="menuCard" style="display: none;">
+<img id="menuImg">
+</div>
+</section>
+
+</div>
+
+<div id="overlay" class="overlay hidden">
+<div class="overlayBox">
+<h2 id="overlayText"></h2>
+</div>
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>

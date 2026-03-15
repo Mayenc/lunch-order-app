@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<title>LunchBox - Admin</title>
+<link rel="stylesheet" href="style.css">
+<script src="tesseract.min.js"></script>
+</head>
+
+<body data-page="admin">
+
+<div class="phone">
+
+<!-- <header>
+<div class="logo">🍱 LunchBox Admin</div>
+</header> -->
+<header class="headerRow">
+
+<div class="logo">🍱 LunchBox Admin</div>
+
+<button id="clearData" class="clearBtn">
+Clear
+</button>
+
+</header>
+
+<div class="tabs">
+<button id="tabManage" class="tabActive">⚙ Manage Menu</button>
+<button id="tabOrders">📋 Orders</button>
+</div>
+
+<section id="managePage">
+
+<div class="card">
+
+<label>Menu Image</label>
+<input type="file" id="menuUpload">
+
+<img id="preview">
+
+</div>
+
+<div class="card">
+
+<label>Menu Items</label>
+
+<div id="scanLoading" class="hidden">Scanning menu...</div>
+
+<div id="menuLines"></div>
+
+<button id="addMenuItem" style="width: 100%;">Add Item</button>
+
+</div>
+
+<div class="card">
+
+<div class="row">
+
+<label style="white-space: nowrap;">
+<input type="checkbox" id="enableOrder">
+Enable Ordering
+</label>
+
+</div>
+
+<label>Deadline Time</label>
+<input type="time" id="deadline">
+
+</div>
+
+<button id="saveMenu" style="width: 100%;">Save Menu</button>
+
+</section>
+
+<section id="ordersPage" class="hidden">
+
+<div class="orderHeader">
+
+<h3>Order Summary</h3>
+
+<div class="badge">
+Total: <span id="total"></span>
+</div>
+
+</div>
+
+<div id="summaryGrid" class="grid"></div>
+
+<h3>Detailed List</h3>
+
+<div id="detailList"></div>
+<button id="exportTxt" style="width: 100%;">Export TXT</button>
+</section>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
