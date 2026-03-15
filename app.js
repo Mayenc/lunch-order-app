@@ -6,7 +6,28 @@
 // let enableOrder = false
 // let deadline = "08:50"
 
+// let deviceId = null
+
+// getDeviceId()
 // loadStorage()
+
+// /* DEVICE ID */
+
+// function getDeviceId(){
+
+// let id = localStorage.getItem("deviceId")
+
+// if(!id){
+
+// id = "dev_" + Math.random().toString(36).substring(2) + Date.now()
+
+// localStorage.setItem("deviceId",id)
+
+// }
+
+// deviceId = id
+
+// }
 
 // /* STORAGE */
 
@@ -22,19 +43,32 @@
 // if(o) orders = JSON.parse(o)
 // if(img) menuImage = img
 // if(en) enableOrder = JSON.parse(en)
-// if (dl) {
+
+// if(dl){
 // deadline = dl
-// } else {
+// }else{
 // deadline = "08:50"
 // }
 
+// /* USER PAGE */
+
 // if(page==="user"){
-// document.getElementById("menuImg").src = menuImage
+
+// const imgEl = document.getElementById("menuImg")
+
+// if(imgEl && menuImage) imgEl.src = menuImage
+
 // renderDishSelect()
+// renderMyHistory()
 // checkOrderState()
 // renderDeadline()
+
 // }
+
+// /* ADMIN PAGE */
+
 // if(page==="admin"){
+
 // const clearBtn = document.getElementById("clearData")
 
 // if(clearBtn){
@@ -45,22 +79,25 @@
 
 // localStorage.clear()
 
-// orders = []
-// menuLines = []
-// menuImage = null
-// enableOrder = false
-// deadline = "08:50"
+// orders=[]
+// menuLines=[]
+// menuImage=null
+// enableOrder=false
+// deadline="08:50"
 
 // location.reload()
 
 // }
 
 // }
+
 // const tabManage = document.getElementById("tabManage")
 // const tabOrders = document.getElementById("tabOrders")
 
 // const managePage = document.getElementById("managePage")
 // const ordersPage = document.getElementById("ordersPage")
+
+// if(tabManage){
 
 // tabManage.onclick = () => {
 
@@ -71,6 +108,10 @@
 // ordersPage.classList.add("hidden")
 
 // }
+
+// }
+
+// if(tabOrders){
 
 // tabOrders.onclick = () => {
 
@@ -85,15 +126,21 @@
 // }
 
 // }
-// if(page==="admin"){
 
-// document.getElementById("preview").src = menuImage
-// document.getElementById("enableOrder").checked = enableOrder
+// const preview = document.getElementById("preview")
 
-// if(deadline)
-// document.getElementById("deadline").value = deadline
+// if(preview && menuImage) preview.src = menuImage
+
+// const enableCheck = document.getElementById("enableOrder")
+
+// if(enableCheck) enableCheck.checked = enableOrder
+
+// const dlInput = document.getElementById("deadline")
+
+// if(dlInput) dlInput.value = deadline
 
 // renderMenuLines()
+
 // }
 
 // }
@@ -112,17 +159,25 @@
 
 // if(page==="admin"){
 
-// document.getElementById("menuUpload").onchange=(e)=>{
+// const upload = document.getElementById("menuUpload")
+
+// if(upload){
+
+// upload.onchange=(e)=>{
 
 // const file = e.target.files[0]
+
 // orders=[]
 
 // const reader = new FileReader()
 
 // reader.onload=(x)=>{
 
-// menuImage=x.target.result
-// document.getElementById("preview").src=menuImage
+// menuImage = x.target.result
+
+// const preview = document.getElementById("preview")
+
+// if(preview) preview.src = menuImage
 
 // scanMenu(file)
 
@@ -132,62 +187,68 @@
 
 // }
 
-// document.getElementById("enableOrder").onchange=(e)=>{
+// }
+
+// const enableCheck = document.getElementById("enableOrder")
+
+// if(enableCheck){
+
+// enableCheck.onchange=(e)=>{
 
 // enableOrder=e.target.checked
 // saveStorage()
 
 // }
 
-// document.getElementById("deadline").onchange=(e)=>{
+// }
+
+// const dlInput = document.getElementById("deadline")
+
+// if(dlInput){
+
+// dlInput.onchange=(e)=>{
 
 // deadline=e.target.value
 // saveStorage()
 // renderDeadline()
+
 // }
 
-// document.getElementById("addMenuItem").onclick=()=>{
+// }
+
+// const addBtn = document.getElementById("addMenuItem")
+
+// if(addBtn){
+
+// addBtn.onclick=()=>{
 
 // menuLines.push("")
 // renderMenuLines()
 
 // }
 
-// document.getElementById("saveMenu").onclick=()=>{
+// }
+
+// const saveBtn = document.getElementById("saveMenu")
+
+// if(saveBtn){
+
+// saveBtn.onclick=()=>{
 
 // saveStorage()
 // alert("Menu saved")
 
 // }
 
-// document.getElementById("exportTxt").onclick=exportTxt
-
 // }
 
-// /* OCR */
+// const exportBtn = document.getElementById("exportTxt")
 
-// async function scanMenu(file){
+// if(exportBtn){
 
-// document.getElementById("scanLoading").classList.remove("hidden")
+// exportBtn.onclick = exportTxt
 
-// const {data:{text}}=await Tesseract.recognize(
-// file,
-// 'vie',
-// {langPath:'https://tessdata.projectnaptha.com/4.0.0'}
-// )
-
-// menuLines=text
-// .split("\n")
-// .map(x=>x.trim())
-// .filter(x=>x!="")
-// .map(x=>x.replace(/[^0-9a-zA-ZÀ-ỹ: ]+/g,""))
-// .map(x=>x.replace(/\s+/g," "))
-
-// renderMenuLines()
-
-// saveStorage()
-
-// document.getElementById("scanLoading").classList.add("hidden")
+// }
 
 // }
 
@@ -233,11 +294,15 @@
 
 // }
 
-// /* USER */
+// /* USER ORDER */
 
 // if(page==="user"){
 
-// document.getElementById("orderBtn").onclick=()=>{
+// const orderBtn = document.getElementById("orderBtn")
+
+// if(orderBtn){
+
+// orderBtn.onclick = () => {
 
 // if(!enableOrder) return
 
@@ -245,24 +310,29 @@
 // const dish=document.getElementById("dishSelect").value
 // const note=document.getElementById("note").value
 
-// if(!name||!dish) return alert("Vui lòng nhập đầy đủ thông tin")
+// if(!name || !dish) return alert("Vui lòng nhập đầy đủ thông tin")
 
-// let now=new Date()
+// let editId = orderBtn.dataset.editId
 
-// if(deadline){
+// if(editId){
 
-// let today=now.toISOString().split("T")[0]
-// let deadlineTime=new Date(today+"T"+deadline)
+// let existing = orders.find(o=>o.orderId==editId)
 
-// // if(now>deadlineTime){
-// // alert("Ordering time expired")
-// // return
-// // }
+// if(existing){
+
+// existing.name=name
+// existing.dish=dish
+// existing.note=note
+// existing.time=new Date().toLocaleTimeString()
 
 // }
 
+// }else{
+
 // orders.push({
 
+// orderId:Date.now(),
+// deviceId:deviceId,
 // name,
 // dish,
 // note,
@@ -270,11 +340,150 @@
 
 // })
 
+// }
+
 // saveStorage()
 
+// if(editId){
+// alert("Cập nhật món ăn thành công!")
+// }else{
 // alert("Đặt món ăn thành công!")
+// }
+
+// orderBtn.innerText="Đặt cơm"
+// orderBtn.dataset.editId=""
+
+// renderMyHistory()
+
+// document.getElementById("dishSelect").value=""
+// document.getElementById("note").value=""
 
 // }
+
+// }
+
+// }
+
+// /* USER HISTORY */
+
+// function renderMyHistory(){
+
+// const box = document.getElementById("myHistory")
+
+// if(!box) return
+
+// box.innerHTML=""
+
+// let myOrders = orders.filter(o => o.deviceId === deviceId)
+
+// if(myOrders.length === 0){
+
+// box.innerHTML="<p>Chưa có món nào</p>"
+// return
+
+// }
+
+// myOrders.forEach(o => {
+
+// let div = document.createElement("div")
+
+// div.className = "orderItem"
+
+// div.innerHTML = `
+
+// <div style="
+// width: 100%;
+// display:flex;
+// justify-content:space-between;
+// align-items:center;
+// padding:10px;
+// border-bottom:1px solid #eee;
+// ">
+
+// <div>
+
+// <div style="font-weight:600;font-size:15px">
+// ${o.dish}
+// </div>
+
+// <div style="font-size:13px;color:#666">
+// ${o.note || ""}
+// </div>
+
+// </div>
+
+// <div style="text-align:right">
+
+// <div style="font-size:12px;color:#888;margin-bottom:6px">
+// 🕒 ${o.time}
+// </div>
+
+// <button onclick="editOrder(${o.orderId})"
+// style="
+// padding:4px 8px;
+// margin-right:4px;
+// border:none;
+// border-radius:4px;
+// background:#4ba2bf;
+// color:white;
+// cursor:pointer;
+// font-size:12px;
+// ">
+// Edit
+// </button>
+
+// <button onclick="deleteOrder(${o.orderId})"
+// style="
+// padding:4px 8px;
+// border:none;
+// border-radius:4px;
+// background:#e74c3c;
+// color:white;
+// cursor:pointer;
+// font-size:12px;
+// ">
+// Delete
+// </button>
+
+// </div>
+
+// </div>
+// `
+
+// box.appendChild(div)
+
+// })
+
+// }
+
+// function editOrder(id){
+
+// let o = orders.find(x=>x.orderId==id)
+
+// if(!o) return
+
+// document.getElementById("name").value=o.name
+// document.getElementById("dishSelect").value=o.dish
+// document.getElementById("note").value=o.note
+
+// const btn=document.getElementById("orderBtn")
+
+// btn.dataset.editId=id
+// btn.innerText="Cập nhật món ăn"
+
+// window.scrollTo({top:0,behavior:"smooth"})
+
+// }
+
+// function deleteOrder(id){
+
+// if(!confirm("Bạn có chắc muốn xóa món này?")) return
+
+// orders = orders.filter(o => o.orderId != id)
+
+// saveStorage()
+
+// renderMyHistory()
 
 // }
 
@@ -291,6 +500,7 @@
 // menuLines.forEach(d=>{
 
 // const op=document.createElement("option")
+
 // op.value=d
 // op.innerText=d
 
@@ -300,7 +510,7 @@
 
 // }
 
-// /* ORDER LIST */
+// /* ADMIN ORDER LIST */
 
 // function renderOrders(){
 
@@ -350,31 +560,27 @@
 // /* EXPORT TXT */
 
 // function exportTxt(){
+
 // const now = new Date()
+
 // const day = String(now.getDate()).padStart(2,"0")
 // const month = String(now.getMonth()+1).padStart(2,"0")
 // const year = now.getFullYear()
 
-// let text = `Đơm cơm trưa hôm nay ${day}-${month}-${year}\n\n`
+// let text = `Đơn cơm trưa hôm nay ${day}-${month}-${year}\n\n`
 
 // orders.forEach(o=>{
-
-// text += `${o.name} - ${o.dish} - ${o.note || ""}\n`
-
+// text += `${o.name} - ${o.dish} - ${o.note||""}\n`
 // })
 
 // const fileName = `lunch_order_${day}-${month}-${year}.txt`
 
-// /* DOWNLOAD */
+// const blob = new Blob([text],{type:"text/plain"})
 
-// const blob = new Blob([text], { type:"text/plain" })
+// const a=document.createElement("a")
 
-// const a = document.createElement("a")
-
-// a.href = URL.createObjectURL(blob)
-
-// a.download = fileName
-
+// a.href=URL.createObjectURL(blob)
+// a.download=fileName
 // a.click()
 
 // }
@@ -396,31 +602,30 @@
 
 // }
 
+// overlay.classList.add("hidden")
+
+// }
+
+// /* DEADLINE TEXT */
+
+// function renderDeadline(){
+
+// const el=document.getElementById("deadlineText")
+
+// if(!el) return
+
 // if(!deadline){
 
-// overlay.classList.add("hidden")
+// el.innerText=""
 // return
 
 // }
 
-// let now=new Date()
-// let today=now.toISOString().split("T")[0]
-
-// let deadlineTime=new Date(today+"T"+deadline)
-
-// // if(now>deadlineTime){
-
-// // overlay.classList.remove("hidden")
-// // text.innerText="Ordering time expired"
-
-// // }
-// // else{
-
-// // overlay.classList.add("hidden")
-
-// // }
+// el.innerText="Thời gian chốt đơn: "+deadline
 
 // }
+
+// /* AUTO REFRESH */
 
 // setInterval(()=>{
 
@@ -431,22 +636,32 @@
 // renderOrders()
 
 // },5000)
-// function renderDeadline(){
 
-// const el = document.getElementById("deadlineText")
+// async function scanMenu(file){
 
-// if(!el) return
+// document.getElementById("scanLoading").classList.remove("hidden")
 
-// if(!deadline){
+// const {data:{text}}=await Tesseract.recognize(
+// file,
+// 'vie',
+// {langPath:'https://tessdata.projectnaptha.com/4.0.0'}
+// )
 
-// el.innerText = ""
+// menuLines=text
+// .split("\n")
+// .map(x=>x.trim())
+// .filter(x=>x!="")
+// .map(x=>x.replace(/[^0-9a-zA-ZÀ-ỹ: ]+/g,""))
+// .map(x=>x.replace(/\s+/g," "))
 
-// return
+// renderMenuLines()
+
+// saveStorage()
+
+// document.getElementById("scanLoading").classList.add("hidden")
+
 // }
-
-// el.innerText = "Thời gian chốt đơn: " + deadline
-
-// }
+const API_URL = "https://script.google.com/macros/s/AKfycbxJ0iPQGpQCqyyg46zvxeAxwsFa875_eoI4NQRiXBxeT-gKWfFrDrr31O4pBqudBoiY/exec"
 
 const page = document.body.dataset.page
 
@@ -459,7 +674,13 @@ let deadline = "08:50"
 let deviceId = null
 
 getDeviceId()
-loadStorage()
+init()
+
+/* INIT */
+
+async function init(){
+await loadStorage()
+}
 
 /* DEVICE ID */
 
@@ -479,25 +700,23 @@ deviceId = id
 
 }
 
-/* STORAGE */
+/* LOAD DATA FROM API */
 
-function loadStorage(){
+async function loadStorage(){
 
-const m = localStorage.getItem("menuLines")
-const o = localStorage.getItem("orders")
-const img = localStorage.getItem("menuImage")
-const en = localStorage.getItem("enableOrder")
-const dl = localStorage.getItem("deadline")
+try{
 
-if(m) menuLines = JSON.parse(m)
-if(o) orders = JSON.parse(o)
-if(img) menuImage = img
-if(en) enableOrder = JSON.parse(en)
+const res = await fetch(API_URL + "?action=load")
+const data = await res.json()
 
-if(dl){
-deadline = dl
-}else{
-deadline = "08:50"
+menuLines = data.menuLines || []
+orders = data.orders || []
+menuImage = data.menuImage || null
+enableOrder = data.enableOrder || false
+deadline = data.deadline || "08:50"
+
+}catch(e){
+console.error("API load error",e)
 }
 
 /* USER PAGE */
@@ -505,7 +724,6 @@ deadline = "08:50"
 if(page==="user"){
 
 const imgEl = document.getElementById("menuImg")
-
 if(imgEl && menuImage) imgEl.src = menuImage
 
 renderDishSelect()
@@ -519,89 +737,40 @@ renderDeadline()
 
 if(page==="admin"){
 
-const clearBtn = document.getElementById("clearData")
+const preview = document.getElementById("preview")
+if(preview && menuImage) preview.src = menuImage
 
-if(clearBtn){
+const enableCheck = document.getElementById("enableOrder")
+if(enableCheck) enableCheck.checked = enableOrder
 
-clearBtn.onclick = () => {
+const dlInput = document.getElementById("deadline")
+if(dlInput) dlInput.value = deadline
 
-if(!confirm("Clear all data?")) return
-
-localStorage.clear()
-
-orders=[]
-menuLines=[]
-menuImage=null
-enableOrder=false
-deadline="08:50"
-
-location.reload()
-
-}
-
-}
-
-const tabManage = document.getElementById("tabManage")
-const tabOrders = document.getElementById("tabOrders")
-
-const managePage = document.getElementById("managePage")
-const ordersPage = document.getElementById("ordersPage")
-
-if(tabManage){
-
-tabManage.onclick = () => {
-
-tabManage.classList.add("tabActive")
-tabOrders.classList.remove("tabActive")
-
-managePage.classList.remove("hidden")
-ordersPage.classList.add("hidden")
-
-}
-
-}
-
-if(tabOrders){
-
-tabOrders.onclick = () => {
-
-tabOrders.classList.add("tabActive")
-tabManage.classList.remove("tabActive")
-
-managePage.classList.add("hidden")
-ordersPage.classList.remove("hidden")
-
+renderMenuLines()
 renderOrders()
 
 }
 
 }
 
-const preview = document.getElementById("preview")
+/* SAVE DATA */
 
-if(preview && menuImage) preview.src = menuImage
+async function saveStorage(){
 
-const enableCheck = document.getElementById("enableOrder")
-
-if(enableCheck) enableCheck.checked = enableOrder
-
-const dlInput = document.getElementById("deadline")
-
-if(dlInput) dlInput.value = deadline
-
-renderMenuLines()
-
-}
-
-}
-
-function saveStorage(){
-
-localStorage.setItem("menuLines",JSON.stringify(menuLines))
-localStorage.setItem("orders",JSON.stringify(orders))
-localStorage.setItem("menuImage",menuImage)
-localStorage.setItem("enableOrder",enableOrder)
-localStorage.setItem("deadline",deadline)
+await fetch(API_URL,{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+action:"save",
+menuLines,
+orders,
+menuImage,
+enableOrder,
+deadline
+})
+})
 
 }
 
@@ -643,10 +812,10 @@ const enableCheck = document.getElementById("enableOrder")
 
 if(enableCheck){
 
-enableCheck.onchange=(e)=>{
+enableCheck.onchange=async (e)=>{
 
 enableOrder=e.target.checked
-saveStorage()
+await saveStorage()
 
 }
 
@@ -656,10 +825,10 @@ const dlInput = document.getElementById("deadline")
 
 if(dlInput){
 
-dlInput.onchange=(e)=>{
+dlInput.onchange=async (e)=>{
 
 deadline=e.target.value
-saveStorage()
+await saveStorage()
 renderDeadline()
 
 }
@@ -683,20 +852,12 @@ const saveBtn = document.getElementById("saveMenu")
 
 if(saveBtn){
 
-saveBtn.onclick=()=>{
+saveBtn.onclick=async ()=>{
 
-saveStorage()
+await saveStorage()
 alert("Menu saved")
 
 }
-
-}
-
-const exportBtn = document.getElementById("exportTxt")
-
-if(exportBtn){
-
-exportBtn.onclick = exportTxt
 
 }
 
@@ -729,18 +890,18 @@ box.appendChild(div)
 
 }
 
-function updateLine(i,val){
+async function updateLine(i,val){
 
 menuLines[i]=val
-saveStorage()
+await saveStorage()
 
 }
 
-function removeLine(i){
+async function removeLine(i){
 
 menuLines.splice(i,1)
 renderMenuLines()
-saveStorage()
+await saveStorage()
 
 }
 
@@ -752,7 +913,7 @@ const orderBtn = document.getElementById("orderBtn")
 
 if(orderBtn){
 
-orderBtn.onclick = () => {
+orderBtn.onclick = async () => {
 
 if(!enableOrder) return
 
@@ -792,7 +953,7 @@ time:new Date().toLocaleTimeString()
 
 }
 
-saveStorage()
+await saveStorage()
 
 if(editId){
 alert("Cập nhật món ăn thành công!")
@@ -804,9 +965,6 @@ orderBtn.innerText="Đặt cơm"
 orderBtn.dataset.editId=""
 
 renderMyHistory()
-
-document.getElementById("dishSelect").value=""
-document.getElementById("note").value=""
 
 }
 
@@ -842,7 +1000,7 @@ div.className = "orderItem"
 div.innerHTML = `
 
 <div style="
-width: 100%;
+width:100%;
 display:flex;
 justify-content:space-between;
 align-items:center;
@@ -868,32 +1026,9 @@ ${o.note || ""}
 🕒 ${o.time}
 </div>
 
-<button onclick="editOrder(${o.orderId})"
-style="
-padding:4px 8px;
-margin-right:4px;
-border:none;
-border-radius:4px;
-background:#4ba2bf;
-color:white;
-cursor:pointer;
-font-size:12px;
-">
-Edit
-</button>
+<button onclick="editOrder(${o.orderId})">Edit</button>
 
-<button onclick="deleteOrder(${o.orderId})"
-style="
-padding:4px 8px;
-border:none;
-border-radius:4px;
-background:#e74c3c;
-color:white;
-cursor:pointer;
-font-size:12px;
-">
-Delete
-</button>
+<button onclick="deleteOrder(${o.orderId})">Delete</button>
 
 </div>
 
@@ -925,13 +1060,13 @@ window.scrollTo({top:0,behavior:"smooth"})
 
 }
 
-function deleteOrder(id){
+async function deleteOrder(id){
 
 if(!confirm("Bạn có chắc muốn xóa món này?")) return
 
 orders = orders.filter(o => o.orderId != id)
 
-saveStorage()
+await saveStorage()
 
 renderMyHistory()
 
@@ -1007,34 +1142,6 @@ document.getElementById("total").innerText=orders.length
 
 }
 
-/* EXPORT TXT */
-
-function exportTxt(){
-
-const now = new Date()
-
-const day = String(now.getDate()).padStart(2,"0")
-const month = String(now.getMonth()+1).padStart(2,"0")
-const year = now.getFullYear()
-
-let text = `Đơn cơm trưa hôm nay ${day}-${month}-${year}\n\n`
-
-orders.forEach(o=>{
-text += `${o.name} - ${o.dish} - ${o.note||""}\n`
-})
-
-const fileName = `lunch_order_${day}-${month}-${year}.txt`
-
-const blob = new Blob([text],{type:"text/plain"})
-
-const a=document.createElement("a")
-
-a.href=URL.createObjectURL(blob)
-a.download=fileName
-a.click()
-
-}
-
 /* ORDER STATE */
 
 function checkOrderState(){
@@ -1047,7 +1154,7 @@ if(!overlay) return
 if(!enableOrder){
 
 overlay.classList.remove("hidden")
-text.innerText="Đơn hàng mới chưa bắt đầu! Vui lòng đợi!"
+text.innerText="Đơn hàng mới chưa bắt đầu!"
 return
 
 }
@@ -1056,7 +1163,7 @@ overlay.classList.add("hidden")
 
 }
 
-/* DEADLINE TEXT */
+/* DEADLINE */
 
 function renderDeadline(){
 
@@ -1064,28 +1171,28 @@ const el=document.getElementById("deadlineText")
 
 if(!el) return
 
-if(!deadline){
-
-el.innerText=""
-return
-
-}
-
 el.innerText="Thời gian chốt đơn: "+deadline
 
 }
 
 /* AUTO REFRESH */
 
-setInterval(()=>{
+setInterval(async ()=>{
 
-if(page==="user")
+await loadStorage()
+
+if(page==="user"){
+renderMyHistory()
 checkOrderState()
+}
 
-if(page==="admin")
+if(page==="admin"){
 renderOrders()
+}
 
 },5000)
+
+/* OCR MENU */
 
 async function scanMenu(file){
 
@@ -1106,9 +1213,8 @@ menuLines=text
 
 renderMenuLines()
 
-saveStorage()
+await saveStorage()
 
 document.getElementById("scanLoading").classList.add("hidden")
 
 }
-
