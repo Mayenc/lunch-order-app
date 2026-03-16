@@ -661,9 +661,10 @@
 // document.getElementById("scanLoading").classList.add("hidden")
 
 // }
-const API_URL = "https://script.google.com/macros/s/AKfycbxJ0iPQGpQCqyyg46zvxeAxwsFa875_eoI4NQRiXBxeT-gKWfFrDrr31O4pBqudBoiY/exec"
-
 const page = document.body.dataset.page
+
+const API_URL =
+"https://script.google.com/macros/s/AKfycbxJ0iPQGpQCqyyg46zvxeAxwsFa875_eoI4NQRiXBxeT-gKWfFrDrr31O4pBqudBoiY/exec"
 
 let orders = []
 let menuLines = []
@@ -674,13 +675,7 @@ let deadline = "08:50"
 let deviceId = null
 
 getDeviceId()
-init()
-
-/* INIT */
-
-async function init(){
-await loadStorage()
-}
+loadStorage()
 
 /* DEVICE ID */
 
@@ -700,30 +695,32 @@ deviceId = id
 
 }
 
-/* LOAD DATA FROM API */
+/* STORAGE LOAD (JSONP) */
 
-async function loadStorage(){
+function loadStorage(){
 
-try{
+const script=document.createElement("script")
 
-const res = await fetch(API_URL + "?action=load")
-const data = await res.json()
+script.src = API_URL + "?action=load&callback=loadDataCallback"
 
-menuLines = data.menuLines || []
+document.body.appendChild(script)
+
+}
+
+function loadDataCallback(data){
+
+menuLines = data.menu || []
 orders = data.orders || []
-menuImage = data.menuImage || null
+menuImage = data.image || null
 enableOrder = data.enableOrder || false
 deadline = data.deadline || "08:50"
-
-}catch(e){
-console.error("API load error",e)
-}
 
 /* USER PAGE */
 
 if(page==="user"){
 
 const imgEl = document.getElementById("menuImg")
+
 if(imgEl && menuImage) imgEl.src = menuImage
 
 renderDishSelect()
@@ -738,12 +735,15 @@ renderDeadline()
 if(page==="admin"){
 
 const preview = document.getElementById("preview")
+
 if(preview && menuImage) preview.src = menuImage
 
 const enableCheck = document.getElementById("enableOrder")
+
 if(enableCheck) enableCheck.checked = enableOrder
 
 const dlInput = document.getElementById("deadline")
+
 if(dlInput) dlInput.value = deadline
 
 renderMenuLines()
@@ -753,23 +753,43 @@ renderOrders()
 
 }
 
-/* SAVE DATA */
+/* STORAGE SAVE */
 
-async function saveStorage(){
+function saveStorage(){
 
-await fetch(API_URL,{
+fetch(API_URL,{
+
 method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
+
 body:JSON.stringify({
+
 action:"save",
-menuLines,
-orders,
-menuImage,
-enableOrder,
-deadline
+menuLines:menuLines,
+menuImage:menuImage,
+enableOrder:enableOrder,
+deadline:deadline
+
 })
+
+})
+
+}
+
+/* SYNC ORDERS */
+
+function syncOrders(){
+
+fetch(API_URL,{
+
+method:"POST",
+
+body:JSON.stringify({
+
+action:"syncOrders",
+orders:orders
+
+})
+
 })
 
 }
@@ -812,10 +832,10 @@ const enableCheck = document.getElementById("enableOrder")
 
 if(enableCheck){
 
-enableCheck.onchange=async (e)=>{
+enableCheck.onchange=(e)=>{
 
 enableOrder=e.target.checked
-await saveStorage()
+saveStorage()
 
 }
 
@@ -825,10 +845,10 @@ const dlInput = document.getElementById("deadline")
 
 if(dlInput){
 
-dlInput.onchange=async (e)=>{
+dlInput.onchange=(e)=>{
 
 deadline=e.target.value
-await saveStorage()
+saveStorage()
 renderDeadline()
 
 }
@@ -852,12 +872,22 @@ const saveBtn = document.getElementById("saveMenu")
 
 if(saveBtn){
 
-saveBtn.onclick=async ()=>{
+saveBtn.onclick=()=>{
 
-await saveStorage()
+saveStorage()
+syncOrders()
+
 alert("Menu saved")
 
 }
+
+}
+
+const exportBtn = document.getElementById("exportTxt")
+
+if(exportBtn){
+
+exportBtn.onclick = exportTxt
 
 }
 
@@ -890,18 +920,18 @@ box.appendChild(div)
 
 }
 
-async function updateLine(i,val){
+function updateLine(i,val){
 
 menuLines[i]=val
-await saveStorage()
+saveStorage()
 
 }
 
-async function removeLine(i){
+function removeLine(i){
 
 menuLines.splice(i,1)
 renderMenuLines()
-await saveStorage()
+saveStorage()
 
 }
 
@@ -913,7 +943,7 @@ const orderBtn = document.getElementById("orderBtn")
 
 if(orderBtn){
 
-orderBtn.onclick = async () => {
+orderBtn.onclick = () => {
 
 if(!enableOrder) return
 
@@ -953,7 +983,8 @@ time:new Date().toLocaleTimeString()
 
 }
 
-await saveStorage()
+saveStorage()
+syncOrders()
 
 if(editId){
 alert("Cập nhật món ăn thành công!")
@@ -965,6 +996,9 @@ orderBtn.innerText="Đặt cơm"
 orderBtn.dataset.editId=""
 
 renderMyHistory()
+
+document.getElementById("dishSelect").value=""
+document.getElementById("note").value=""
 
 }
 
@@ -998,36 +1032,17 @@ let div = document.createElement("div")
 div.className = "orderItem"
 
 div.innerHTML = `
-
-<div style="
-width:100%;
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:10px;
-border-bottom:1px solid #eee;
-">
+<div style="display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid #eee;">
+<div>
+<div style="font-weight:600">${o.dish}</div>
+<div style="font-size:13px;color:#666">${o.note||""}</div>
+</div>
 
 <div>
 
-<div style="font-weight:600;font-size:15px">
-${o.dish}
-</div>
-
-<div style="font-size:13px;color:#666">
-${o.note || ""}
-</div>
-
-</div>
-
-<div style="text-align:right">
-
-<div style="font-size:12px;color:#888;margin-bottom:6px">
-🕒 ${o.time}
-</div>
+<div style="font-size:12px;color:#888">🕒 ${o.time}</div>
 
 <button onclick="editOrder(${o.orderId})">Edit</button>
-
 <button onclick="deleteOrder(${o.orderId})">Delete</button>
 
 </div>
@@ -1060,13 +1075,14 @@ window.scrollTo({top:0,behavior:"smooth"})
 
 }
 
-async function deleteOrder(id){
+function deleteOrder(id){
 
 if(!confirm("Bạn có chắc muốn xóa món này?")) return
 
 orders = orders.filter(o => o.orderId != id)
 
-await saveStorage()
+saveStorage()
+syncOrders()
 
 renderMyHistory()
 
@@ -1142,6 +1158,34 @@ document.getElementById("total").innerText=orders.length
 
 }
 
+/* EXPORT TXT */
+
+function exportTxt(){
+
+const now = new Date()
+
+const day = String(now.getDate()).padStart(2,"0")
+const month = String(now.getMonth()+1).padStart(2,"0")
+const year = now.getFullYear()
+
+let text = `Đơn cơm trưa hôm nay ${day}-${month}-${year}\n\n`
+
+orders.forEach(o=>{
+text += `${o.name} - ${o.dish} - ${o.note||""}\n`
+})
+
+const fileName = `lunch_order_${day}-${month}-${year}.txt`
+
+const blob = new Blob([text],{type:"text/plain"})
+
+const a=document.createElement("a")
+
+a.href=URL.createObjectURL(blob)
+a.download=fileName
+a.click()
+
+}
+
 /* ORDER STATE */
 
 function checkOrderState(){
@@ -1154,7 +1198,7 @@ if(!overlay) return
 if(!enableOrder){
 
 overlay.classList.remove("hidden")
-text.innerText="Đơn hàng mới chưa bắt đầu!"
+text.innerText="Đơn hàng mới chưa bắt đầu! Vui lòng đợi!"
 return
 
 }
@@ -1163,7 +1207,7 @@ overlay.classList.add("hidden")
 
 }
 
-/* DEADLINE */
+/* DEADLINE TEXT */
 
 function renderDeadline(){
 
@@ -1177,22 +1221,13 @@ el.innerText="Thời gian chốt đơn: "+deadline
 
 /* AUTO REFRESH */
 
-setInterval(async ()=>{
+setInterval(()=>{
 
-await loadStorage()
+loadStorage()
 
-if(page==="user"){
-renderMyHistory()
-checkOrderState()
-}
+},10000)
 
-if(page==="admin"){
-renderOrders()
-}
-
-},5000)
-
-/* OCR MENU */
+/* OCR */
 
 async function scanMenu(file){
 
@@ -1213,7 +1248,7 @@ menuLines=text
 
 renderMenuLines()
 
-await saveStorage()
+saveStorage()
 
 document.getElementById("scanLoading").classList.add("hidden")
 
