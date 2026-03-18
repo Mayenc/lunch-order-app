@@ -24,10 +24,10 @@
 
 <div class="card">
 
-<label style="font-weight: bold;">Tên + phòng ban</label>
+<label style="font-weight: bold;">Tên <span style="color: red;">(*)</span></label>
 <input id="name" placeholder="Tèo IT">
 
-<label style="font-weight: bold;">Chọn món ăn</label>
+<label style="font-weight: bold;">Chọn món ăn <span style="color: red;">(*)</span></label>
 <select id="dishSelect"></select>
 
 <label style="font-weight: bold;">Lưu ý</label>
@@ -36,7 +36,16 @@
 <button id="orderBtn" style="width: 100%;">Đặt cơm</button>
 
 </div>
-<h3>Lịch sử đã đặt</h3>
+<div style="display: flex; align-items: center; justify-content: space-between;">
+    <h3 style="margin: 0;">Lịch sử đã đặt</h3>
+
+    <div class="custom-select">
+        <select id="filterDate">
+            <option value="">loading...</option>
+        </select>
+    </div>
+</div>
+
 
 <div id="myHistory" class="historyBox"></div>
 
@@ -55,6 +64,11 @@
 </div>
 
 <script src="app.js"></script>
-
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        loadConfig()
+        loadMenuFromSheet()
+    })
+</script>
 </body>
 </html>

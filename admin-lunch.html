@@ -78,11 +78,31 @@ Enable Ordering
 
 <div class="orderHeader">
 
-<h3>Order Summary</h3>
-
-<div class="badge">
-Total: <span id="total"></span>
+<div style="display: flex; align-items: center; justify-content: space-between;">
+    <h3 style="margin: 0;">Order Summary </h3>
+    <div class="custom-select">
+        <select id="adminFilterDate">
+            <option value="">loading...</option>
+        </select>
+    </div>
 </div>
+
+<div style="display: flex; align-items: center; justify-content: space-between;">
+    <div class="badge" style="margin: 0;">
+        Total: <span id="total"></span>
+    </div>
+    <span id="copySummary" title="Copy"
+        style="
+            cursor:pointer;
+            font-size:18px;
+            padding:6px;
+            border-radius:6px;
+            transition:0.2s;
+        ">
+         📄
+        </span>
+</div>
+
 
 </div>
 
@@ -97,6 +117,11 @@ Total: <span id="total"></span>
 </div>
 
 <script src="app.js"></script>
-
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        loadMenuAdminFromSheet()
+        loadConfig()
+    })
+</script>
 </body>
 </html>
