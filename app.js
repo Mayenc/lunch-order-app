@@ -1646,7 +1646,7 @@
 // async function readSheet(){
 
 // try{
-// const res = await fetch("https://script.google.com/macros/s/AKfycbxb5VfxBoUFL-wr0DZq1iGdE0XDm6dxSdJT9Yl9HIuzHil1mO9qB_jVMECVTDLF7cYS0g/exec")
+// const res = await fetch("https://script.google.com/macros/s/AKfycbx2m3oYjqojlO5UpWd0u7x4Lf2jdAQIo86oi-28bzIaUP12B1JI5xu4jaRgirZrEJ0GZA/exec")
 // const data = await res.json()
 
 // orders = data
@@ -1665,7 +1665,7 @@
 
 // async function writeSheet(orderId, deviceId, name, dish, note, date, time){
 
-// await fetch("https://script.google.com/macros/s/AKfycbxb5VfxBoUFL-wr0DZq1iGdE0XDm6dxSdJT9Yl9HIuzHil1mO9qB_jVMECVTDLF7cYS0g/exec",{
+// await fetch("https://script.google.com/macros/s/AKfycbx2m3oYjqojlO5UpWd0u7x4Lf2jdAQIo86oi-28bzIaUP12B1JI5xu4jaRgirZrEJ0GZA/exec",{
 // method:"POST",
 // mode:"no-cors",
 // body:JSON.stringify({
@@ -1684,7 +1684,7 @@
 
 // async function updateSheet(orderId, name, dish, note, date, time){
 
-// await fetch("https://script.google.com/macros/s/AKfycbxb5VfxBoUFL-wr0DZq1iGdE0XDm6dxSdJT9Yl9HIuzHil1mO9qB_jVMECVTDLF7cYS0g/exec",{
+// await fetch("https://script.google.com/macros/s/AKfycbx2m3oYjqojlO5UpWd0u7x4Lf2jdAQIo86oi-28bzIaUP12B1JI5xu4jaRgirZrEJ0GZA/exec",{
 // method:"POST",
 // mode:"no-cors",
 // body:JSON.stringify({
@@ -1702,7 +1702,7 @@
 
 // async function deleteSheet(orderId){
 
-// await fetch("https://script.google.com/macros/s/AKfycbxb5VfxBoUFL-wr0DZq1iGdE0XDm6dxSdJT9Yl9HIuzHil1mO9qB_jVMECVTDLF7cYS0g/exec",{
+// await fetch("https://script.google.com/macros/s/AKfycbx2m3oYjqojlO5UpWd0u7x4Lf2jdAQIo86oi-28bzIaUP12B1JI5xu4jaRgirZrEJ0GZA/exec",{
 // method:"POST",
 // mode:"no-cors",
 // body:JSON.stringify({
@@ -1722,6 +1722,7 @@ let menuImage = null
 let enableOrder = false
 let deadline = "12:00"
 let selectedDate = null
+let users = []
 
 let deviceId = null
 
@@ -1739,6 +1740,7 @@ localStorage.setItem("deviceId",id)
 }
 
 deviceId = id
+return deviceId
 }
 
 /* STORAGE */
@@ -1758,7 +1760,7 @@ renderDeadline()
 
 /* SAVE */
 function saveStorage(){
-
+localStorage.setItem("deviceId",deviceId)
 localStorage.setItem("menuImage",menuImage)
 }
 
@@ -1839,10 +1841,11 @@ const orderBtn = document.getElementById("orderBtn")
 if(orderBtn){
 
 orderBtn.onclick = async () => {
-
+showLoading()
 if(!enableOrder) return
 
-const name=document.getElementById("name").value
+const userid=document.getElementById("name").value
+const name=document.getElementById("name").selectedOptions[0].text
 const dish=document.getElementById("dishSelect").value
 const note=document.getElementById("note").value
 
@@ -1858,7 +1861,7 @@ let time_c = vnDate.toISOString().split('T')[1].split('.')[0];
 
 if(editId){
 // UPDATE
-await updateSheet(editId, name, dish, note, date_c, time_c)
+await updateSheet(editId,userid, name, dish, note, date_c, time_c)
 alert("Cập nhật thành công!")
 
 orderBtn.innerText="Đặt cơm"
@@ -1868,16 +1871,18 @@ orderBtn.dataset.editId=""
 // CREATE
 let orderId=crypto.randomUUID()
 
-await writeSheet(orderId, deviceId, name, dish, note, date_c, time_c)
+await writeSheet(orderId, deviceId,userid, name, dish, note, date_c, time_c)
 renderDateFilter()
 renderMyHistory()
 alert("Đặt món ăn thành công!")
 }
-
+hideLoading()
 readSheet()
 
 document.getElementById("dishSelect").value=""
 document.getElementById("note").value=""
+
+
 }
 
 }
@@ -1894,13 +1899,14 @@ if(!box) return
 const now = new Date()
 const vn = new Date(now.getTime() + 7*60*60*1000)
 const today = vn.toISOString().split('T')[0]
-
+const selectedUserId = document.getElementById("name")?.value
+console.log("select user: ", selectedUserId)
 // check điều kiện cho phép edit
-const allowEdit = (selectedDate === today) && isBeforeDeadline()
+const currentDeviceId = getDeviceId()
 box.innerHTML=""
-
+console.log("order render: ", orders)
 let myOrders = orders.filter(o => 
-o.deviceId === deviceId &&
+o.userId.toString() === selectedUserId.toString() &&
 (!selectedDate || o.date === selectedDate)
 )
 console.log(myOrders)
@@ -1909,7 +1915,7 @@ box.innerHTML="<p>Chưa có món nào</p>"
 return
 }
 myOrders.forEach(o => {
-
+const allowEdit = (selectedDate === today) && isBeforeDeadline() && o.deviceId === currentDeviceId
 let div = document.createElement("div")
 
 div.className = "orderItem"
@@ -1946,7 +1952,7 @@ ${o.note || ""}
 ${
 allowEdit
 ? `
-<button onclick="editOrder(${o.orderId})"
+<button onclick="editOrder('${o.orderId}')"
 style="
 padding:4px 8px;
 margin-right:4px;
@@ -1960,7 +1966,7 @@ font-size:12px;
 Edit
 </button>
 
-<button onclick="deleteOrder(${o.orderId})"
+<button onclick="deleteOrder('${o.orderId}')"
 style="
 padding:4px 8px;
 border:none;
@@ -1986,7 +1992,36 @@ box.appendChild(div)
 })
 
 }
+/* ================= EDIT ================= */
 
+function editOrder(id){
+
+let o = orders.find(x=>x.orderId==id)
+if(!o) return
+
+document.getElementById("name").value=o.userId
+document.getElementById("dishSelect").value=o.dish
+document.getElementById("note").value=o.note
+
+const btn=document.getElementById("orderBtn")
+
+btn.dataset.editId=id
+btn.innerText="Cập nhật món ăn"
+
+window.scrollTo({top:0,behavior:"smooth"})
+}
+
+/* ================= DELETE ================= */
+
+function deleteOrder(id){
+
+if(!confirm("Bạn có chắc muốn xóa không?")) return
+
+deleteSheet(id)
+
+readSheet()
+
+}
 /* ================= ADMIN ORDER ================= */
 
 function renderOrders(){
@@ -2045,37 +2080,41 @@ document.getElementById("total").innerText=filtered.length
 
 function renderDateFilter(){
 
-const select = document.getElementById("filterDate")
-if(!select) return
+    const select = document.getElementById("filterDate")
+    if(!select) return
 
-let dates = [...new Set(orders.map(o => o.date))]
-dates.sort((a,b)=> b.localeCompare(a))
+    let dates = [...new Set(orders.map(o => o.date))]
 
-select.innerHTML=""
+    const now = new Date()
+    const vn = new Date(now.getTime() + 7*60*60*1000)
+    const today = vn.toISOString().split('T')[0]
 
-const now = new Date()
-const vn = new Date(now.getTime() + 7*60*60*1000)
-const today = vn.toISOString().split('T')[0]
+    if (!dates.includes(today)) {
+        dates.push(today)
+    }
 
-selectedDate = selectedDate || today
+    dates.sort((a,b)=> b.localeCompare(a))
 
-dates.forEach(d=>{
-const op=document.createElement("option")
-op.value=d
-op.innerText=d
+    select.innerHTML=""
 
-if(d===selectedDate) op.selected=true
+    selectedDate = today
 
-select.appendChild(op)
-})
+    dates.forEach(d=>{
+        const op=document.createElement("option")
+        op.value=d
+        op.innerText=d
 
-select.onchange = (e)=>{
-selectedDate = e.target.value
+        if(d===selectedDate) op.selected=true
 
-if(page==="user") renderMyHistory()
-if(page==="admin") renderOrders()
-}
+        select.appendChild(op)
+    })
 
+    select.onchange = (e)=>{
+        selectedDate = e.target.value
+
+        if(page==="user") renderMyHistory()
+        if(page==="admin") renderOrders()
+    }
 }
 
 /* ================= CHECK DEADLINE ================= */
@@ -2096,13 +2135,13 @@ return currentTime <= deadline
 function renderDeadline(){
 const el=document.getElementById("deadlineText")
 if(!el) return
-el.innerText="Thời gian chốt đơn: "+deadline
+el.innerText="Thời gian chốt đơn: "+deadline.split(':').slice(0, 2).join(':')
 }
 
 /* AUTO REFRESH */
 
 setInterval(()=>{
-readSheet()
+// readSheet()
 if(page==="user") checkOrderState()
 },5000)
 /* ================= DISH ================= */
@@ -2459,10 +2498,45 @@ menuLines.splice(i,1)
 renderMenuLines()
 
 }
+
+function renderUserSelect(){
+
+    const el = document.getElementById("name")
+    if(!el) return
+
+    el.innerHTML = `<option value="">-- Chọn người đặt --</option>`
+
+    users.forEach(u => {
+
+        const opt = document.createElement("option")
+
+        opt.value = u.id
+        opt.textContent = u.name
+
+        el.appendChild(opt)
+    })
+
+    // 🔥 load lại user đã chọn
+    const saved = localStorage.getItem("selectedUser")
+    if(saved){
+        el.value = saved
+        renderMyHistory()
+    }
+
+    // 🔥 lưu khi user đổi
+    el.addEventListener("change", function(){
+        localStorage.setItem("selectedUser", this.value)
+    })
+}
+
+const selectedId = document.getElementById("name").value
+
+const name = users.find(u => u.id === selectedId)?.name || ""
+
 /* ================= AUTO REFRESH ================= */
 
 setInterval(()=>{
-readSheet()
+// readSheet()
 if(page==="user") checkOrderState()
 },5000)
 
@@ -2472,9 +2546,9 @@ async function readSheet(){
 
 try{
 
-const res = await fetch("https://script.google.com/macros/s/AKfycbxb5VfxBoUFL-wr0DZq1iGdE0XDm6dxSdJT9Yl9HIuzHil1mO9qB_jVMECVTDLF7cYS0g/exec?action=loadOrders")
+const res = await fetch("https://script.google.com/macros/s/AKfycbx2m3oYjqojlO5UpWd0u7x4Lf2jdAQIo86oi-28bzIaUP12B1JI5xu4jaRgirZrEJ0GZA/exec?action=loadOrders")
 const data = await res.json()
-
+console.log("data order: ",data)
 orders = data
 
 // 🔥 FIX QUAN TRỌNG
@@ -2497,15 +2571,16 @@ console.log("Sheet error",e)
 
 /* ================= WRITE ================= */
 
-async function writeSheet(orderId, deviceId, name, dish, note, date, time){
+async function writeSheet(orderId, deviceId, userId, name, dish, note, date, time){
 
-await fetch("https://script.google.com/macros/s/AKfycbxb5VfxBoUFL-wr0DZq1iGdE0XDm6dxSdJT9Yl9HIuzHil1mO9qB_jVMECVTDLF7cYS0g/exec",{
+await fetch("https://script.google.com/macros/s/AKfycbx2m3oYjqojlO5UpWd0u7x4Lf2jdAQIo86oi-28bzIaUP12B1JI5xu4jaRgirZrEJ0GZA/exec",{
 method:"POST",
 mode:"no-cors",
 body:JSON.stringify({
 action:"create",
 orderId,
 deviceId,
+userId,
 name,
 dish,
 note,
@@ -2516,14 +2591,15 @@ time
 
 }
 
-async function updateSheet(orderId, name, dish, note, date, time){
+async function updateSheet(orderId, userId, name, dish, note, date, time){
 
-await fetch("https://script.google.com/macros/s/AKfycbxb5VfxBoUFL-wr0DZq1iGdE0XDm6dxSdJT9Yl9HIuzHil1mO9qB_jVMECVTDLF7cYS0g/exec",{
+await fetch("https://script.google.com/macros/s/AKfycbx2m3oYjqojlO5UpWd0u7x4Lf2jdAQIo86oi-28bzIaUP12B1JI5xu4jaRgirZrEJ0GZA/exec",{
 method:"POST",
 mode:"no-cors",
 body:JSON.stringify({
 action:"update",
 orderId,
+userId,
 name,
 dish,
 note,
@@ -2535,8 +2611,8 @@ time
 }
 
 async function deleteSheet(orderId){
-
-await fetch("https://script.google.com/macros/s/AKfycbxb5VfxBoUFL-wr0DZq1iGdE0XDm6dxSdJT9Yl9HIuzHil1mO9qB_jVMECVTDLF7cYS0g/exec",{
+showLoading()
+await fetch("https://script.google.com/macros/s/AKfycbx2m3oYjqojlO5UpWd0u7x4Lf2jdAQIo86oi-28bzIaUP12B1JI5xu4jaRgirZrEJ0GZA/exec",{
 method:"POST",
 mode:"no-cors",
 body:JSON.stringify({
@@ -2544,7 +2620,8 @@ action:"delete",
 orderId
 })
 })
-
+readSheet()
+hideLoading()
 }
 
 async function saveMenuToSheet(){
@@ -2553,7 +2630,7 @@ async function saveMenuToSheet(){
     const vn = new Date(now.getTime() + 7*60*60*1000)
     const today = vn.toISOString().split('T')[0]
 
-    // await fetch("https://script.google.com/macros/s/AKfycbxb5VfxBoUFL-wr0DZq1iGdE0XDm6dxSdJT9Yl9HIuzHil1mO9qB_jVMECVTDLF7cYS0g/exec",{
+    // await fetch("https://script.google.com/macros/s/AKfycbx2m3oYjqojlO5UpWd0u7x4Lf2jdAQIo86oi-28bzIaUP12B1JI5xu4jaRgirZrEJ0GZA/exec",{
     //     method:"POST",
     //     mode:"no-cors",
     //     body: JSON.stringify({
@@ -2569,7 +2646,7 @@ async function saveMenuToSheet(){
     const deadline = document.getElementById("deadline").value
 
     // ===== SAVE MENU (cũ của bạn) =====
-    await fetch("https://script.google.com/macros/s/AKfycbxb5VfxBoUFL-wr0DZq1iGdE0XDm6dxSdJT9Yl9HIuzHil1mO9qB_jVMECVTDLF7cYS0g/exec", {
+    await fetch("https://script.google.com/macros/s/AKfycbx2m3oYjqojlO5UpWd0u7x4Lf2jdAQIo86oi-28bzIaUP12B1JI5xu4jaRgirZrEJ0GZA/exec", {
         method: "POST",
         mode:"no-cors",
         body: JSON.stringify({
@@ -2580,7 +2657,7 @@ async function saveMenuToSheet(){
     })
 
     // ===== SAVE CONFIG (THÊM) =====
-    await fetch("https://script.google.com/macros/s/AKfycbxb5VfxBoUFL-wr0DZq1iGdE0XDm6dxSdJT9Yl9HIuzHil1mO9qB_jVMECVTDLF7cYS0g/exec", {
+    await fetch("https://script.google.com/macros/s/AKfycbx2m3oYjqojlO5UpWd0u7x4Lf2jdAQIo86oi-28bzIaUP12B1JI5xu4jaRgirZrEJ0GZA/exec", {
         method: "POST",
         mode:"no-cors",
         body: JSON.stringify({
@@ -2601,7 +2678,7 @@ async function loadMenuFromSheet(){
 
     try{
 
-        const url = `https://script.google.com/macros/s/AKfycbxb5VfxBoUFL-wr0DZq1iGdE0XDm6dxSdJT9Yl9HIuzHil1mO9qB_jVMECVTDLF7cYS0g/exec?action=loadMenu&date=${today}`
+        const url = `https://script.google.com/macros/s/AKfycbx2m3oYjqojlO5UpWd0u7x4Lf2jdAQIo86oi-28bzIaUP12B1JI5xu4jaRgirZrEJ0GZA/exec?action=loadMenu&date=${today}`
 
         const res = await fetch(url)
 
@@ -2626,7 +2703,7 @@ async function loadMenuAdminFromSheet(dateParam = null){
 
     try{
 
-        const url = `https://script.google.com/macros/s/AKfycbxb5VfxBoUFL-wr0DZq1iGdE0XDm6dxSdJT9Yl9HIuzHil1mO9qB_jVMECVTDLF7cYS0g/exec?action=loadMenu&date=${today}`
+        const url = `https://script.google.com/macros/s/AKfycbx2m3oYjqojlO5UpWd0u7x4Lf2jdAQIo86oi-28bzIaUP12B1JI5xu4jaRgirZrEJ0GZA/exec?action=loadMenu&date=${today}`
 
         const res = await fetch(url)
         const data = await res.json()
@@ -2651,35 +2728,11 @@ async function loadMenuAdminFromSheet(dateParam = null){
     }
 }
 
-// async function loadConfig(){
-
-//     try{
-
-//         const res = await fetch(`https://script.google.com/macros/s/AKfycbxb5VfxBoUFL-wr0DZq1iGdE0XDm6dxSdJT9Yl9HIuzHil1mO9qB_jVMECVTDLF7cYS0g/exec?action=loadConfig`)
-//         const data = await res.json()
-
-//         console.log("config:", data)
-
-//         // set UI
-//         document.getElementById("enableOrder").checked = data.enableOrder
-//         document.getElementById("deadline").value = data.deadline
-
-//         enableOrder = data.enableOrder
-//         deadline = data.deadline
-
-//         renderDeadline()
-//         checkOrderState()
-
-//     }catch(e){
-//         console.log("Load config error", e)
-//     }
-// }
-
 async function loadConfig(){
 
     try{
 
-        const res = await fetch(`https://script.google.com/macros/s/AKfycbxb5VfxBoUFL-wr0DZq1iGdE0XDm6dxSdJT9Yl9HIuzHil1mO9qB_jVMECVTDLF7cYS0g/exec?action=loadConfig`)
+        const res = await fetch(`https://script.google.com/macros/s/AKfycbx2m3oYjqojlO5UpWd0u7x4Lf2jdAQIo86oi-28bzIaUP12B1JI5xu4jaRgirZrEJ0GZA/exec?action=loadConfig`)
         const data = await res.json()
 
         console.log("config:", data)
@@ -2708,30 +2761,18 @@ async function loadConfig(){
     }
 }
 
-// async function saveMenu(){
+async function loadUsers(){
 
-//     const enableOrder = document.getElementById("enableOrder").checked
-//     const deadline = document.getElementById("deadline").value
+    try{
 
-//     // ===== SAVE MENU (cũ của bạn) =====
-//     await fetch("https://script.google.com/macros/s/AKfycbxb5VfxBoUFL-wr0DZq1iGdE0XDm6dxSdJT9Yl9HIuzHil1mO9qB_jVMECVTDLF7cYS0g/exec", {
-//         method: "POST",
-//         body: JSON.stringify({
-//             action: "saveMenu",
-//             date: currentDate,
-//             menu: menuLines
-//         })
-//     })
+        const res = await fetch(`https://script.google.com/macros/s/AKfycbx2m3oYjqojlO5UpWd0u7x4Lf2jdAQIo86oi-28bzIaUP12B1JI5xu4jaRgirZrEJ0GZA/exec?action=loadUsers`)
+        const data = await res.json()
+        console.log("data user: ", data)
+        users = data || []
 
-//     // ===== SAVE CONFIG (THÊM) =====
-//     await fetch("https://script.google.com/macros/s/AKfycbxb5VfxBoUFL-wr0DZq1iGdE0XDm6dxSdJT9Yl9HIuzHil1mO9qB_jVMECVTDLF7cYS0g/exec", {
-//         method: "POST",
-//         body: JSON.stringify({
-//             action: "saveConfig",
-//             enableOrder: enableOrder,
-//             deadline: deadline
-//         })
-//     })
+        renderUserSelect()
 
-//     alert("Saved!")
-// }
+    }catch(e){
+        console.log("Load users error", e)
+    }
+}

@@ -25,7 +25,7 @@
 <div class="card">
 
 <label style="font-weight: bold;">Tên <span style="color: red;">(*)</span></label>
-<input id="name" placeholder="Tèo IT">
+<select id="name"></select>
 
 <label style="font-weight: bold;">Chọn món ăn <span style="color: red;">(*)</span></label>
 <select id="dishSelect"></select>
@@ -62,12 +62,51 @@
 <h2 id="overlayText"></h2>
 </div>
 </div>
-
+<div id="loadingOverlay">
+    <div>
+        <div class="spinner"></div>
+        <p>Đang tải dữ liệu...</p>
+    </div>
+</div>
 <script src="app.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        loadConfig()
-        loadMenuFromSheet()
+    document.addEventListener("DOMContentLoaded",async () => {
+        // await loadConfig()
+        // await loadUsers()
+        // await loadMenuFromSheet()
+
+        // renderDateFilter()
+        // readSheet()
+        try {
+            showLoading()
+
+            await Promise.all([
+                loadConfig(),
+                loadUsers(),
+                loadMenuFromSheet()
+            ])
+
+            renderDateFilter()
+            readSheet() 
+
+        } catch (err) {
+            console.error("Load lỗi:", err)
+        } finally {
+            hideLoading()
+        }
+    })
+    function showLoading() {
+        document.getElementById("loadingOverlay").style.display = "flex"
+    }
+
+    function hideLoading() {
+        document.getElementById("loadingOverlay").style.display = "none"
+    }
+    document.getElementById("name").addEventListener("change", function(){
+
+        localStorage.setItem("selectedUser", this.value)
+
+        renderMyHistory() 
     })
 </script>
 </body>
