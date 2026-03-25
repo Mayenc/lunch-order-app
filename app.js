@@ -2164,19 +2164,28 @@ select.appendChild(op)
 
 /* ================= CHECK ORDER ================= */
 function checkOrderState(){
+const buttonOrder=document.getElementById("orderBtn")
+// const text=document.getElementById("msgDealineOrder")
 
-const overlay=document.getElementById("overlay")
-const text=document.getElementById("overlayText")
-
-if(!overlay) return
+// if(buttonOrder.disabled) return
 
 if(!enableOrder){
-overlay.classList.remove("hidden")
-text.innerText="Đơn hàng chưa mở!"
+buttonOrder.disabled = true;
+buttonOrder.innerText= "Đơn hàng mới chưa mở!";
+buttonOrder.style.backgroundColor = "gray";
+buttonOrder.style.cursor = "not-allowed";
+buttonOrder.style.opacity = "0.6";
+// text.classList.remove("hidden")
+// text.innerText="Đơn hàng chưa mở!"
 return
 }
 
-overlay.classList.add("hidden")
+// text.classList.add("hidden")
+buttonOrder.style.backgroundColor = "black";
+buttonOrder.style.cursor = "pointer";
+buttonOrder.innerText= "Đặt cơm";
+buttonOrder.style.opacity = "1";
+buttonOrder.disabled = false;
 
 }
 
