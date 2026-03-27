@@ -1121,15 +1121,6 @@ async function loadConfig(){
         if(chk) chk.checked = enableOrder
         if(dl) dl.value = deadline
 
-        // ===== USER UI =====
-        if(typeof renderDeadline === "function"){
-            renderDeadline()
-        }
-
-        if(typeof checkOrderState === "function"){
-            checkOrderState()
-        }
-
     }catch(e){
         console.log("Load config error", e)
     }
