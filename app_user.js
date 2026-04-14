@@ -84,25 +84,80 @@ localStorage.setItem("deviceId",deviceId)
 localStorage.setItem("menuImage",menuImage)
 }
 
+// function renderUserSelect(){
+//     const el = document.getElementById("nameSelect")
+//     if(!el) return
+//     el.innerHTML = `<option value="">— Chọn người đặt —</option>`
+//     users.forEach(u => {
+//         const opt = document.createElement("option")
+//         opt.value = u.id
+//         opt.textContent = u.name
+//         el.appendChild(opt)
+//     })
+//     const saved = localStorage.getItem("selectedUser")
+//     if(saved){
+//         el.value = saved
+//         // renderMyHistory()
+//     }
+//     el.addEventListener("change", function(){
+//         localStorage.setItem("selectedUser", this.value)
+//         readSheet(this.value);
+//     })
+//     readSheet(el.value);
+// }
+let tomSelectInstance = null;
+
 function renderUserSelect(){
     const el = document.getElementById("nameSelect")
     if(!el) return
+
+    if (tomSelectInstance) {
+        tomSelectInstance.destroy();
+        tomSelectInstance = null;
+    }
+
     el.innerHTML = `<option value="">— Chọn người đặt —</option>`
+
     users.forEach(u => {
         const opt = document.createElement("option")
         opt.value = u.id
         opt.textContent = u.name
         el.appendChild(opt)
     })
+
+    tomSelectInstance = new TomSelect(el, {
+        create: false,
+        allowEmptyOption: true,
+        placeholder: "— Chọn người đặt —",
+        maxOptions: 1000,
+        searchField: ["text"],
+        highlight: true,
+        openOnFocus: true,
+        hideSelected: true,
+        onItemAdd: function(value) {
+            this.blur(); 
+        },
+        onFocus: function() {
+            this.setTextboxValue("");
+        },
+        onType: function(str) {
+            const item = this.control.querySelector('.item');
+            if (item) {
+                item.style.display = str.length ? 'none' : '';
+            }
+        }
+    })
+
     const saved = localStorage.getItem("selectedUser")
     if(saved){
-        el.value = saved
-        // renderMyHistory()
+        tomSelectInstance.setValue(saved)
     }
+
     el.addEventListener("change", function(){
         localStorage.setItem("selectedUser", this.value)
         readSheet(this.value);
     })
+
     readSheet(el.value);
 }
 async function loadUsers(){
