@@ -682,6 +682,19 @@ const FOODS = menuLines;
     const name = document.getElementById("nameSelect").selectedOptions[0].text;
     const food = document.getElementById('foodSelect').value;
     const note = document.getElementById('noteInput').value.trim();
+    // ✅ Check cả userid (value) lẫn food
+    if (!userid || userid === '') { 
+        shake('nameSelect'); 
+        showToast('Vui lòng chọn tên người đặt!', 'error'); 
+        hideLoading(); 
+        return; 
+    }
+    if (!food || food === '') { 
+        shake('foodSelect'); 
+        showToast('Vui lòng chọn món ăn!', 'error'); 
+        hideLoading(); 
+        return; 
+    }
     if (!name) { shake('nameSelect'); showToast('Vui lòng chọn đầy đủ thông tin!','error'); return; }
     if (!food) { shake('foodSelect'); showToast('Vui lòng chọn đầy đủ thông tin!','error'); return; }
     const order = { id: Date.now().toString(), name, food, note, time: new Date().toISOString() };
