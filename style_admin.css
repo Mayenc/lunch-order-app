@@ -280,7 +280,7 @@ input[type="date"]:focus, input[type="time"]:focus, input[type="number"]:focus {
 .price-row span { color: var(--muted); font-weight: 700; font-size: 0.85rem; }
 
 /* ---------- Summary list ---------- */
-.summary-list { display: flex; flex-direction: column; gap: 8px; }
+.summary-list { display: flex; flex-direction: column; gap: 10px; }
 .summary-dish-item {
   background: var(--bg);
   border: 1.5px solid var(--border);
@@ -311,12 +311,48 @@ input[type="date"]:focus, input[type="time"]:focus, input[type="number"]:focus {
   gap: 8px;
 }
 .summary-user-name .u-total { margin-left: auto; font-family:'Quicksand',sans-serif; font-size: 0.75rem; color: var(--muted); font-weight: 700; }
+.summary-user-name .u-name-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .summary-user-dishes { display: flex; flex-direction: column; gap: 4px; padding-left: 4px; }
 .summary-user-dishes .dish-line {
   font-size: 0.85rem; color: var(--text); font-weight: 600;
-  display: flex; justify-content: space-between;
+  display: flex; justify-content: space-between; gap: 10px;
 }
-.summary-user-dishes .dish-line span:last-child { color: var(--primary); font-weight: 700; }
+.summary-user-dishes .dish-line span:last-child { color: var(--primary); font-weight: 700; white-space: nowrap; }
+.summary-user-dishes .dish-line span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.dish-days { font-size: 0.74rem; color: var(--muted); font-weight: 600; font-style: italic; }
+
+/* ---------- Week: mini dish-total block + section headings ---------- */
+.week-total-block {
+  background: white;
+  border: 1.5px dashed var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 4px;
+}
+.week-total-title {
+  font-family: 'Baloo 2', cursive;
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+.summary-dish-item.compact {
+  background: var(--bg);
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+}
+.summary-dish-item.compact:last-child { margin-bottom: 0; }
+.week-people-title {
+  font-family: 'Baloo 2', cursive;
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: var(--primary);
+  margin: 6px 0 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 
 .empty-summary { text-align: center; color: var(--muted); padding: 24px; font-weight: 600; font-size: 0.9rem; }
 
@@ -340,7 +376,43 @@ input[type="date"]:focus, input[type="time"]:focus, input[type="number"]:focus {
 .detail-item .di-time { font-size: 0.76rem; color: var(--muted); font-weight: 600; }
 .detail-item .di-date { font-size: 0.72rem; color: #C5B5AA; margin-top: 2px; }
 
-/* ---------- Add-for-other form ---------- */
+/* ---------- Add-for-other form (collapsible) ---------- */
+.btn-toggle-add {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--primary);
+  transition: opacity 0.2s;
+}
+.btn-toggle-add:hover { opacity: 0.85; }
+.btn-toggle-add .chevron {
+  font-size: 1.3rem;
+  line-height: 1;
+  color: var(--muted);
+  transition: transform 0.25s ease;
+}
+.btn-toggle-add.open .chevron { transform: rotate(180deg); color: var(--primary); }
+
+.add-other-panel {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.25s ease, margin-top 0.3s ease;
+  margin-top: 0;
+}
+.add-other-panel.open {
+  max-height: 600px;
+  opacity: 1;
+  margin-top: 20px;
+}
 .card .form-grid + .btn-primary.full { margin-top: 16px; }
 
 @media (max-width: 540px) {

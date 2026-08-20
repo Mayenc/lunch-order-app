@@ -68,26 +68,31 @@
   <section id="ordersPage" class="tab-page hidden">
 
     <div class="card">
-      <div class="card-title">➕ Thêm món cho người khác</div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Người đặt</label>
-          <select id="adminAddUser"><option value="">— Chọn tên —</option></select>
+      <button id="toggleAddOther" class="btn-toggle-add full">
+        <span>➕ Thêm món cho người khác</span>
+        <span class="chevron">⌄</span>
+      </button>
+      <div id="addOtherPanel" class="add-other-panel">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Người đặt</label>
+            <select id="adminAddUser"><option value="">— Chọn tên —</option></select>
+          </div>
+          <div class="form-group">
+            <label>Món ăn</label>
+            <select id="adminAddFood"><option value="">— Chọn món —</option></select>
+          </div>
+          <div class="form-group">
+            <label>Ngày đặt</label>
+            <input type="date" id="adminAddDate">
+          </div>
+          <div class="form-group full">
+            <label>Ghi chú</label>
+            <input type="text" id="adminAddNote" placeholder="VD: ít cay, không hành, thêm rau...">
+          </div>
         </div>
-        <div class="form-group">
-          <label>Món ăn</label>
-          <select id="adminAddFood"><option value="">— Chọn món —</option></select>
-        </div>
-        <div class="form-group">
-          <label>Ngày đặt</label>
-          <input type="date" id="adminAddDate">
-        </div>
-        <div class="form-group full">
-          <label>Ghi chú</label>
-          <input type="text" id="adminAddNote" placeholder="VD: ít cay, không hành, thêm rau...">
-        </div>
+        <button id="adminAddOrderBtn" class="btn-primary full">➕ Thêm đơn</button>
       </div>
-      <button id="adminAddOrderBtn" class="btn-primary full">➕ Thêm đơn</button>
     </div>
 
     <div class="card">

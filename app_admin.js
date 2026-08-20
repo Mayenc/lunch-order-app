@@ -108,6 +108,36 @@ function fmtMoney(n){
   return n.toLocaleString("vi-VN") + "đ"
 }
 
+const WEEKDAY_ORDER = ["T2","T3","T4","T5","T6","T7","CN"]
+function dayLabelOf(dateStr){
+  const d = new Date(dateStr + "T00:00:00")
+  const map = { 0:"CN", 1:"T2", 2:"T3", 3:"T4", 4:"T5", 5:"T6", 6:"T7" }
+  return map[d.getDay()]
+}
+function sortDayLabels(labels){
+  return labels.sort((a,b) => WEEKDAY_ORDER.indexOf(a) - WEEKDAY_ORDER.indexOf(b))
+}
+
+/* ================= AVATAR (same palette as comtrua.html) ================= */
+
+const AVATAR_COLORS = [
+  'linear-gradient(135deg,#E8572A,#F5A623)',
+  'linear-gradient(135deg,#3DAA6E,#56D18A)',
+  'linear-gradient(135deg,#6C63FF,#A78BFA)',
+  'linear-gradient(135deg,#E91E8C,#FF6B9D)',
+  'linear-gradient(135deg,#00BCD4,#4DD0E1)',
+  'linear-gradient(135deg,#FF5722,#FF9800)',
+]
+function getInitial(name){
+  const p = name.trim().split(" ")
+  return p[p.length-1][0].toUpperCase()
+}
+function getColor(name){
+  let h = 0
+  for(const c of name) h = (h * 31 + c.charCodeAt(0)) % AVATAR_COLORS.length
+  return AVATAR_COLORS[h]
+}
+
 /* ================= TABS (with #hash persistence) ================= */
 
 function initTabs(){
@@ -401,6 +431,18 @@ function initOrdersHandlers(){
 
   const dateInput = document.getElementById("adminAddDate")
   if(dateInput) dateInput.value = todayVN()
+
+  const toggleBtn = document.getElementById("toggleAddOther")
+  const panel = document.getElementById("addOtherPanel")
+  if(toggleBtn && panel){
+    toggleBtn.onclick = () => {
+      const isOpen = panel.classList.toggle("open")
+      toggleBtn.classList.toggle("open", isOpen)
+      if(isOpen){
+        setTimeout(() => document.getElementById("adminAddUser")?.focus(), 250)
+      }
+    }
+  }
 }
 
 /* ================= ADMIN: ADD ORDER FOR SOMEONE ELSE ================= */
@@ -430,6 +472,14 @@ async function adminAddOrder(){
 
     await readSheet()
     showToast(`Đã thêm ${dish} cho ${name}!`, "success")
+
+    // collapse the panel back after a successful add
+    const panel = document.getElementById("addOtherPanel")
+    const toggleBtn = document.getElementById("toggleAddOther")
+    if(panel && toggleBtn){
+      panel.classList.remove("open")
+      toggleBtn.classList.remove("open")
+    }
   }catch(e){
     console.log("Admin add order error", e)
     showToast("Thêm đơn thất bại", "error")
@@ -564,36 +614,68 @@ function renderAdminOrders(){
     currentSummaryText = text
 
   }else{
-    // week mode: group by user -> {dish: qty}
+    // week mode: group by user -> {dish: {qty, days:Set}}
     const byUser = {}
     filtered.forEach(o => {
       const key = o.userId || o.name
       if(!byUser[key]) byUser[key] = { name: o.name, dishes: {}, total: 0 }
-      byUser[key].dishes[o.dish] = (byUser[key].dishes[o.dish] || 0) + 1
+      if(!byUser[key].dishes[o.dish]) byUser[key].dishes[o.dish] = { qty: 0, days: new Set() }
+      byUser[key].dishes[o.dish].qty++
+      byUser[key].dishes[o.dish].days.add(dayLabelOf(o.date))
       byUser[key].total++
     })
 
     const sortedUsers = Object.values(byUser).sort((a,b) => a.name.localeCompare(b.name, 'vi'))
 
+    // ---- mini tổng theo món (cả tuần) ----
+    const weekDishMap = {}
+    filtered.forEach(o => { weekDishMap[o.dish] = (weekDishMap[o.dish] || 0) + 1 })
+
+    const weekTotalBlock = document.createElement("div")
+    weekTotalBlock.className = "week-total-block"
+    weekTotalBlock.innerHTML = `<div class="week-total-title">🍽️ Tổng theo món cả tuần</div>` +
+      Object.keys(weekDishMap).map(dish =>
+        `<div class="summary-dish-item compact"><span class="dish-name">${dish}</span><span class="dish-qty">x${weekDishMap[dish]}</span></div>`
+      ).join("")
+    summaryGrid.appendChild(weekTotalBlock)
+
+    const peopleHeading = document.createElement("div")
+    peopleHeading.className = "week-people-title"
+    peopleHeading.innerText = "👥 Theo người đặt"
+    summaryGrid.appendChild(peopleHeading)
+
     sortedUsers.forEach(u => {
       const block = document.createElement("div")
       block.className = "summary-user-block"
 
-      const dishLines = Object.keys(u.dishes)
-        .map(dish => `<div class="dish-line"><span>${dish}</span><span>x${u.dishes[dish]}</span></div>`)
-        .join("")
+      const dishLines = Object.keys(u.dishes).map(dish => {
+        const d = u.dishes[dish]
+        const days = sortDayLabels([...d.days]).join(", ")
+        return `<div class="dish-line"><span>${dish} <span class="dish-days">(${days})</span></span><span>x${d.qty}</span></div>`
+      }).join("")
 
       block.innerHTML = `
-        <div class="summary-user-name">👤 ${u.name}<span class="u-total">${u.total} suất</span></div>
+        <div class="summary-user-name">
+          <div class="order-avatar" style="background:${getColor(u.name)}">${getInitial(u.name)}</div>
+          <span class="u-name-text">${u.name}</span>
+          <span class="u-total">${u.total} suất</span>
+        </div>
         <div class="summary-user-dishes">${dishLines}</div>
       `
       summaryGrid.appendChild(block)
     })
 
     let text = `🍱 Tổng hợp đơn tuần ${weekStart} - ${weekEnd}:\n\n`
+    text += `🍽️ Tổng theo món cả tuần:\n`
+    Object.keys(weekDishMap).forEach(dish => { text += `  - ${dish}: ${weekDishMap[dish]} suất\n` })
+    text += `\n👥 Theo người đặt:\n\n`
     sortedUsers.forEach(u => {
-      text += `👤 ${u.name}:\n`
-      Object.keys(u.dishes).forEach(dish => { text += `  - ${dish} x${u.dishes[dish]}\n` })
+      text += `👤 ${u.name} (${u.total} suất):\n`
+      Object.keys(u.dishes).forEach(dish => {
+        const d = u.dishes[dish]
+        const days = sortDayLabels([...d.days]).join(", ")
+        text += `  - ${dish} x${d.qty} (${days})\n`
+      })
       text += `\n`
     })
     text += `👉 Tổng: ${total} suất`
