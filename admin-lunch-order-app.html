@@ -1,127 +1,150 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
 <head>
 <meta charset="UTF-8">
 <title>LunchBox - Admin</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="style.css">
-<script src="tesseract.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Baloo+2:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="style_user.css" rel="stylesheet"/>
+<link href="style_admin.css" rel="stylesheet"/>
 </head>
 
-<body data-page="admin">
+<body>
+<div class="container admin">
 
-<div class="phone">
-
-<!-- <header>
-<div class="logo">🍱 LunchBox Admin</div>
-</header> -->
-<header class="headerRow">
-
-<div class="logo">🍱 LunchBox Admin</div>
-
-<button id="clearData" class="clearBtn">
-Clear
-</button>
-
-</header>
-
-<div class="tabs">
-<button id="tabManage" class="tabActive">⚙ Manage Menu</button>
-<button id="tabOrders">📋 Orders</button>
-</div>
-
-<section id="managePage">
-
-<div class="card">
-
-<label>Menu Image</label>
-<input type="file" id="menuUpload">
-
-<img id="preview">
-
-</div>
-
-<div class="card">
-
-<label>Menu Items</label>
-
-<div id="scanLoading" class="hidden">Scanning menu...</div>
-
-<div id="menuLines"></div>
-
-<button id="addMenuItem" style="width: 100%;">Add Item</button>
-
-</div>
-
-<div class="card">
-
-<div class="row">
-
-<label style="white-space: nowrap;">
-<input type="checkbox" id="enableOrder">
-Enable Ordering
-</label>
-
-</div>
-
-<label>Deadline Time</label>
-<input type="time" id="deadline">
-
-</div>
-
-<button id="saveMenu" style="width: 100%;">Save Menu</button>
-
-</section>
-
-<section id="ordersPage" class="hidden">
-
-<div class="orderHeader">
-
-<div style="display: flex; align-items: center; justify-content: space-between;">
-    <h3 style="margin: 0;">Order Summary </h3>
-    <div class="custom-select">
-        <select id="adminFilterDate">
-            <option value="">loading...</option>
-        </select>
+  <div class="header" style="text-align:left; margin-bottom:20px;">
+    <div class="admin-header-top">
+      <div class="admin-header-title">
+        <span class="icon" style="display:inline;">🍱</span>
+        <h1>LunchBox Admin</h1>
+      </div>
+      <button id="clearData" class="btn-clear">🗑 Xóa dữ liệu</button>
     </div>
-</div>
+    <p class="admin-sub">Quản lý thực đơn &amp; đơn đặt cơm hằng ngày</p>
+  </div>
 
-<div style="display: flex; align-items: center; justify-content: space-between;">
-    <div class="badge" style="margin: 0;">
-        Total: <span id="total"></span>
+  <div class="admin-tabs">
+    <button id="tabManage" class="admin-tab active">⚙️ Thực đơn</button>
+    <button id="tabOrders" class="admin-tab">📋 Đơn hàng</button>
+  </div>
+
+  <!-- ================= MANAGE MENU ================= -->
+  <section id="managePage" class="tab-page">
+
+    <div class="card">
+      <div class="card-title">🖼️ Ảnh thực đơn</div>
+      <label for="menuUpload" class="upload-box">📷 Chọn ảnh menu để quét tự động</label>
+      <input type="file" id="menuUpload" accept="image/*" hidden>
+      <img id="preview" class="menu-preview" alt="">
+      <div id="scanLoading" class="hidden scan-loading">🔍 Đang quét thực đơn, vui lòng chờ...</div>
     </div>
-    <span id="copySummary" title="Copy"
-        style="
-            cursor:pointer;
-            font-size:18px;
-            padding:6px;
-            border-radius:6px;
-            transition:0.2s;
-        ">
-         📄
-        </span>
+
+    <div class="card">
+      <div class="card-title">🍽️ Danh sách món ăn</div>
+      <div id="menuLines"></div>
+      <button id="addMenuItem" class="btn-secondary full">+ Thêm món (vào Cơm)</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⏱️ Cấu hình đặt cơm</div>
+
+      <label class="switch-row">
+        <span>Cho phép đặt cơm</span>
+        <input type="checkbox" id="enableOrder">
+        <span class="switch"></span>
+      </label>
+
+      <div class="form-group">
+        <label>Giờ chốt đơn (deadline)</label>
+        <input type="time" id="deadline">
+      </div>
+    </div>
+
+    <button id="saveMenu" class="btn-primary full">💾 Lưu thực đơn</button>
+  </section>
+
+  <!-- ================= ORDERS ================= -->
+  <section id="ordersPage" class="tab-page hidden">
+
+    <div class="card">
+      <div class="card-title">➕ Thêm món cho người khác</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Người đặt</label>
+          <select id="adminAddUser"><option value="">— Chọn tên —</option></select>
+        </div>
+        <div class="form-group">
+          <label>Món ăn</label>
+          <select id="adminAddFood"><option value="">— Chọn món —</option></select>
+        </div>
+        <div class="form-group">
+          <label>Ngày đặt</label>
+          <input type="date" id="adminAddDate">
+        </div>
+        <div class="form-group full">
+          <label>Ghi chú</label>
+          <input type="text" id="adminAddNote" placeholder="VD: ít cay, không hành, thêm rau...">
+        </div>
+      </div>
+      <button id="adminAddOrderBtn" class="btn-primary full">➕ Thêm đơn</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 Tổng hợp đơn hàng</div>
+
+      <div class="mode-switch">
+        <button id="modeDay" class="mode-btn active" data-mode="day">📅 Theo ngày</button>
+        <button id="modeWeek" class="mode-btn" data-mode="week">🗓️ Theo tuần</button>
+      </div>
+
+      <div id="dayControls" class="filter-row">
+        <select id="adminFilterDate"><option value="">loading...</option></select>
+      </div>
+
+      <div id="weekControls" class="filter-row hidden">
+        <button id="prevWeek" class="btn-nav">‹</button>
+        <span id="weekLabel" class="week-label"></span>
+        <button id="nextWeek" class="btn-nav">›</button>
+      </div>
+
+      <div class="summary-header">
+        <div class="badge-group">
+          <span class="badge">Tổng: <b id="total">0</b> suất</span>
+          <span class="badge badge-money">💰 <b id="totalMoney">0đ</b></span>
+        </div>
+        <span id="copySummary" class="btn-icon" title="Copy tổng hợp">📄</span>
+      </div>
+
+      <div class="price-row">
+        <label>Đơn giá / món</label>
+        <input type="number" id="unitPrice" value="35000" step="1000" min="0">
+        <span>đ</span>
+      </div>
+
+      <div id="summaryGrid" class="summary-list"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 Chi tiết đơn hàng</div>
+      <div id="detailList"></div>
+      <button id="exportTxt" class="btn-secondary full">⬇️ Xuất file TXT</button>
+    </div>
+
+  </section>
+
 </div>
 
+<div class="toast" id="toast"></div>
 
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <div class="loading-text">Đang xử lý...</div>
+  </div>
 </div>
 
-<div id="summaryGrid" class="grid"></div>
-
-<h3>Detailed List</h3>
-
-<div id="detailList"></div>
-<button id="exportTxt" style="width: 100%;">Export TXT</button>
-</section>
-
-</div>
-
-<script src="app.js"></script>
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        loadMenuAdminFromSheet()
-        loadConfig()
-    })
-</script>
+<script src="tesseract.min.js"></script>
+<script src="app_admin.js"></script>
 </body>
 </html>
