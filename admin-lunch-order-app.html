@@ -118,7 +118,10 @@
           <span class="badge">Tổng: <b id="total">0</b> suất</span>
           <span class="badge badge-money">💰 <b id="totalMoney">0đ</b></span>
         </div>
-        <span id="copySummary" class="btn-icon" title="Copy tổng hợp">📄</span>
+        <div class="copy-btn-group">
+          <span id="copySummary" class="btn-icon" title="Copy tổng hợp theo người">📄</span>
+          <span id="copyDaySummary" class="btn-icon hidden" title="Copy tổng hợp theo ngày">📆</span>
+        </div>
       </div>
 
       <div class="price-row">
@@ -132,6 +135,13 @@
 
     <div class="card">
       <div class="card-title">📋 Chi tiết đơn hàng</div>
+
+      <div class="detail-search-row">
+        <input type="text" id="detailSearch" placeholder="🔍 Tìm theo tên người hoặc món ăn...">
+        <button id="clearDetailSearch" class="btn-clear-search hidden" title="Xoá tìm kiếm">✕</button>
+      </div>
+      <div id="detailSearchInfo" class="detail-search-info hidden"></div>
+
       <div id="detailList"></div>
       <button id="exportTxt" class="btn-secondary full">⬇️ Xuất file TXT</button>
     </div>

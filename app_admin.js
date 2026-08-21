@@ -18,8 +18,13 @@ let currentMode = "day"        // "day" | "week"
 let selectedDate = null        // for day mode
 let weekOffset = 0             // for week mode (0 = current week)
 let unitPrice = 35000
-let currentSummaryText = ""    // text used by the copy button
+let currentSummaryText = ""    // text used by the "copy summary" button
+let weekDayBreakdownText = ""  // text used by the "copy by-day" button (week mode only)
 let currentFiltered = []       // orders currently shown, used by export
+
+let editingDetailId = null     // orderId currently being edited inline in the detail list
+let editingDetailMenu = null   // menu options loaded for that order's date
+let detailSearchQuery = ""     // search text for name/dish in the detail list
 
 /* ================= INIT ================= */
 
@@ -106,6 +111,14 @@ function fmtDMY(d){
 }
 function fmtMoney(n){
   return n.toLocaleString("vi-VN") + "đ"
+}
+function normalizeSearch(str){
+  return (str || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .trim()
 }
 
 const WEEKDAY_ORDER = ["T2","T3","T4","T5","T6","T7","CN"]
@@ -423,8 +436,28 @@ function initOrdersHandlers(){
   const copyBtn = document.getElementById("copySummary")
   if(copyBtn) copyBtn.onclick = copySummary
 
+  const copyDayBtn = document.getElementById("copyDaySummary")
+  if(copyDayBtn) copyDayBtn.onclick = copyDaySummary
+
   const exportBtn = document.getElementById("exportTxt")
   if(exportBtn) exportBtn.onclick = exportTxtFile
+
+  const searchInput = document.getElementById("detailSearch")
+  const clearSearchBtn = document.getElementById("clearDetailSearch")
+  if(searchInput){
+    searchInput.addEventListener("input", () => {
+      detailSearchQuery = searchInput.value
+      renderDetailList()
+    })
+  }
+  if(clearSearchBtn){
+    clearSearchBtn.onclick = () => {
+      detailSearchQuery = ""
+      if(searchInput) searchInput.value = ""
+      renderDetailList()
+      if(searchInput) searchInput.focus()
+    }
+  }
 
   const addBtn = document.getElementById("adminAddOrderBtn")
   if(addBtn) addBtn.onclick = adminAddOrder
@@ -536,45 +569,41 @@ function syncAddFoodSelectIfToday(){
   if(isToday) renderAdminAddFoodSelect(menuGroups)
 }
 
-/* ---- Load & cache the menu of whichever date is picked in the "add for
-   someone else" form, so the food dropdown always matches that date ---- */
-const addFormMenuCache = {}
+/* ---- Load & cache the menu of any given date (used by the "add for
+   someone else" form and by the inline detail-list dish editor) ---- */
+const menuDateCache = {}
+
+async function getMenuForDate(date){
+  if(date === todayVN()) return menuGroups
+  if(menuDateCache[date]) return menuDateCache[date]
+  try{
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=loadMenu&date=${date}`)
+    const data = await res.json()
+    const groups = (data && Object.keys(data).length) ? data : { "🍚 Cơm": [], "🍜 Bún/Phở": [], "🥗 Khác": [] }
+    menuDateCache[date] = groups
+    return groups
+  }catch(e){
+    console.log("getMenuForDate error", e)
+    return menuGroups
+  }
+}
 
 async function loadMenuForAddForm(date){
   const foodSel = document.getElementById("adminAddFood")
   if(!foodSel) return
 
-  // today's menu is already loaded in memory — no need to refetch
-  if(date === todayVN()){
-    renderAdminAddFoodSelect(menuGroups)
-    return
+  const isCached = date === todayVN() || menuDateCache[date]
+  if(!isCached){
+    foodSel.disabled = true
+    foodSel.innerHTML = `<option value="">Đang tải menu ngày ${date}...</option>`
   }
 
-  if(addFormMenuCache[date]){
-    renderAdminAddFoodSelect(addFormMenuCache[date])
-    return
-  }
+  const groups = await getMenuForDate(date)
+  renderAdminAddFoodSelect(groups)
+  foodSel.disabled = false
 
-  foodSel.disabled = true
-  foodSel.innerHTML = `<option value="">Đang tải menu ngày ${date}...</option>`
-
-  try{
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=loadMenu&date=${date}`)
-    const data = await res.json()
-    const groups = (data && Object.keys(data).length) ? data : { "🍚 Cơm": [], "🍜 Bún/Phở": [], "🥗 Khác": [] }
-
-    addFormMenuCache[date] = groups
-    renderAdminAddFoodSelect(groups)
-
-    const hasAnyDish = Object.values(groups).some(arr => arr.length > 0)
-    if(!hasAnyDish) showToast(`Chưa có menu lưu cho ngày ${date}`, "info")
-  }catch(e){
-    console.log("Load menu for date error", e)
-    renderAdminAddFoodSelect(menuGroups)
-    showToast("Không tải được menu ngày đã chọn", "error")
-  }finally{
-    foodSel.disabled = false
-  }
+  const hasAnyDish = Object.values(groups).some(arr => arr.length > 0)
+  if(!hasAnyDish) showToast(`Chưa có menu lưu cho ngày ${date}`, "info")
 }
 
 /* ================= DATE FILTER (day mode) ================= */
@@ -615,7 +644,14 @@ function renderAdminOrders(){
 
   if(!summaryGrid || !detailList) return
 
+  // switching context cancels any in-progress inline edit
+  editingDetailId = null
+  editingDetailMenu = null
+
   renderAdminDateFilter()
+
+  const copyDayBtn = document.getElementById("copyDaySummary")
+  if(copyDayBtn) copyDayBtn.classList.toggle("hidden", currentMode !== "week")
 
   let filtered = []
   let weekStart = null, weekEnd = null
@@ -652,6 +688,7 @@ function renderAdminOrders(){
     currentSummaryText = currentMode === "day"
       ? `🍱 Tổng hợp đơn ngày ${selectedDate}:\n\nChưa có đơn nào.`
       : `🍱 Tổng hợp đơn tuần ${weekStart} - ${weekEnd}:\n\nChưa có đơn nào.`
+    weekDayBreakdownText = "Chưa có đơn nào."
   }else if(currentMode === "day"){
     // dish -> qty
     const map = {}
@@ -738,23 +775,112 @@ function renderAdminOrders(){
     text += `👉 Tổng: ${total} suất`
     text += `\n💰 Tổng tiền: ${fmtMoney(totalMoney)}`
     currentSummaryText = text
+
+    // ---- alternate format: per-day breakdown (for the 📆 button) ----
+    const dayMap = {}
+    filtered.forEach(o => { dayMap[o.date] = (dayMap[o.date] || 0) + 1 })
+    const sortedDates = Object.keys(dayMap).sort()
+
+    let dayText = sortedDates.map(d => {
+      const count = dayMap[d]
+      const money = count * (unitPrice || 0)
+      const moneyShort = Math.round(money / 1000) + "k"
+      const dt = new Date(d + "T00:00:00")
+      return `- Ngày ${fmtDMY(dt)}: ${count} suất (${moneyShort})`
+    }).join("\n")
+    dayText += `\n\nTổng: ${totalMoney.toLocaleString("vi-VN")} đ`
+    weekDayBreakdownText = dayText
   }
 
   // ===== DETAIL LIST =====
+  renderDetailList()
+}
+
+/* ================= DETAIL LIST (view / inline edit / delete) ================= */
+
+function renderDetailList(){
+  const detailList = document.getElementById("detailList")
+  const searchInfo = document.getElementById("detailSearchInfo")
+  const clearBtn = document.getElementById("clearDetailSearch")
+  if(!detailList) return
+
+  if(clearBtn) clearBtn.classList.toggle("hidden", !detailSearchQuery)
+
   detailList.innerHTML = ""
 
-  if(filtered.length === 0){
+  if(!currentFiltered || currentFiltered.length === 0){
+    if(searchInfo) searchInfo.classList.add("hidden")
     detailList.innerHTML = `<div class="empty-summary">Chưa có đơn nào</div>`
-  }else{
-    const sorted = [...filtered].sort((a,b) => {
-      const da = new Date(`${a.date}T${a.time || "00:00:00"}`)
-      const db = new Date(`${b.date}T${b.time || "00:00:00"}`)
-      return db - da
-    })
+    return
+  }
 
-    sorted.forEach(o => {
-      const div = document.createElement("div")
-      div.className = "detail-item"
+  const query = normalizeSearch(detailSearchQuery)
+  const visible = query
+    ? currentFiltered.filter(o =>
+        normalizeSearch(o.name).includes(query) || normalizeSearch(o.dish).includes(query)
+      )
+    : currentFiltered
+
+  if(searchInfo){
+    if(query){
+      searchInfo.classList.remove("hidden")
+      searchInfo.innerText = `🔎 Tìm thấy ${visible.length}/${currentFiltered.length} đơn`
+    }else{
+      searchInfo.classList.add("hidden")
+    }
+  }
+
+  if(visible.length === 0){
+    detailList.innerHTML = `<div class="empty-summary">Không tìm thấy đơn nào khớp "${detailSearchQuery}"</div>`
+    return
+  }
+
+  const sorted = [...visible].sort((a,b) => {
+    const da = new Date(`${a.date}T${a.time || "00:00:00"}`)
+    const db = new Date(`${b.date}T${b.time || "00:00:00"}`)
+    return db - da
+  })
+
+  sorted.forEach(o => {
+    const div = document.createElement("div")
+    div.className = "detail-item"
+
+    if(editingDetailId === o.orderId){
+      if(!editingDetailMenu){
+        div.classList.add("editing")
+        div.innerHTML = `<div class="di-edit-loading">🔍 Đang tải menu ngày ${o.date}...</div>`
+        detailList.appendChild(div)
+        return
+      }
+
+      const groups = editingDetailMenu
+      const optionsHtml = Object.keys(groups).map(g =>
+        `<optgroup label="${g}">` +
+        groups[g].filter(d => d).map(d =>
+          `<option value="${d.replace(/"/g,'&quot;')}" ${d === o.dish ? "selected" : ""}>${d}</option>`
+        ).join("") +
+        `</optgroup>`
+      ).join("")
+
+      div.classList.add("editing")
+      div.innerHTML = `
+        <div class="di-edit-form">
+          <div class="di-edit-name">✏️ ${o.name}</div>
+          <select class="di-edit-dish">${optionsHtml}</select>
+          <input type="text" class="di-edit-note" value="${(o.note || "").replace(/"/g,'&quot;')}" placeholder="Ghi chú">
+          <div class="di-edit-actions">
+            <button class="btn-di-save">✔ Lưu</button>
+            <button class="btn-di-cancel">✕ Huỷ</button>
+          </div>
+        </div>
+      `
+      div.querySelector(".btn-di-save").onclick = () => saveEditDetail(o)
+      div.querySelector(".btn-di-cancel").onclick = () => {
+        editingDetailId = null
+        editingDetailMenu = null
+        renderDetailList()
+      }
+    }else{
       div.innerHTML = `
         <div class="di-info">
           <div class="di-name">${o.name}</div>
@@ -765,9 +891,68 @@ function renderAdminOrders(){
           <div class="di-time">🕒 ${o.time || ""}</div>
           <div class="di-date">${o.date || ""}</div>
         </div>
+        <div class="di-actions">
+          <button class="di-act-btn edit" title="Sửa">✏️</button>
+          <button class="di-act-btn del" title="Xoá">✕</button>
+        </div>
       `
-      detailList.appendChild(div)
-    })
+      div.querySelector(".di-act-btn.edit").onclick = () => startEditDetail(o.orderId)
+      div.querySelector(".di-act-btn.del").onclick = () => deleteDetailOrder(o.orderId, o.name, o.dish)
+    }
+
+    detailList.appendChild(div)
+  })
+}
+
+async function startEditDetail(orderId){
+  const order = orders.find(o => o.orderId === orderId)
+  if(!order) return
+
+  editingDetailId = orderId
+  editingDetailMenu = null
+  renderDetailList() // show a quick loading state while the menu for that date loads
+
+  editingDetailMenu = await getMenuForDate(order.date)
+  if(editingDetailId === orderId) renderDetailList()
+}
+
+async function saveEditDetail(order){
+  const detailList = document.getElementById("detailList")
+  const dishSel = detailList.querySelector(".di-edit-dish")
+  const noteInput = detailList.querySelector(".di-edit-note")
+  const dish = dishSel ? dishSel.value : ""
+  const note = noteInput ? noteInput.value.trim() : ""
+
+  if(!dish){ showToast("Vui lòng chọn món ăn!", "error"); return }
+
+  showLoading("Đang cập nhật...")
+  try{
+    await updateSheetAdmin(order.orderId, order.userId, order.name, dish, note, order.date, order.time)
+    editingDetailId = null
+    editingDetailMenu = null
+    await readSheet()
+    showToast(`Đã cập nhật đơn của ${order.name}!`, "success")
+  }catch(e){
+    console.log("Update order error", e)
+    showToast("Cập nhật thất bại", "error")
+  }finally{
+    hideLoading()
+  }
+}
+
+async function deleteDetailOrder(orderId, name, dish){
+  if(!confirm(`Xoá món "${dish}" của ${name}?`)) return
+
+  showLoading("Đang xoá...")
+  try{
+    await deleteSheetAdmin(orderId)
+    await readSheet()
+    showToast("Đã xoá đơn!", "success")
+  }catch(e){
+    console.log("Delete order error", e)
+    showToast("Xoá thất bại", "error")
+  }finally{
+    hideLoading()
   }
 }
 
@@ -778,6 +963,14 @@ function copySummary(){
 
   navigator.clipboard.writeText(currentSummaryText)
     .then(() => showToast("Đã copy tổng hợp!", "success"))
+    .catch(() => showToast("Copy thất bại", "error"))
+}
+
+function copyDaySummary(){
+  if(!weekDayBreakdownText){ showToast("Không có dữ liệu để copy", "error"); return }
+
+  navigator.clipboard.writeText(weekDayBreakdownText)
+    .then(() => showToast("Đã copy tổng hợp theo ngày!", "success"))
     .catch(() => showToast("Copy thất bại", "error"))
 }
 
@@ -831,5 +1024,19 @@ async function writeSheet(orderId, deviceId, userId, name, dish, note, date, tim
   await fetch(APPS_SCRIPT_URL, {
     method: "POST", mode: "no-cors",
     body: JSON.stringify({ action: "create", orderId, deviceId, userId, name, dish, note, date, time })
+  })
+}
+
+async function updateSheetAdmin(orderId, userId, name, dish, note, date, time){
+  await fetch(APPS_SCRIPT_URL, {
+    method: "POST", mode: "no-cors",
+    body: JSON.stringify({ action: "update", orderId, userId, name, dish, note, date, time })
+  })
+}
+
+async function deleteSheetAdmin(orderId){
+  await fetch(APPS_SCRIPT_URL, {
+    method: "POST", mode: "no-cors",
+    body: JSON.stringify({ action: "delete", orderId })
   })
 }

@@ -261,6 +261,8 @@ input[type="date"]:focus, input[type="time"]:focus, input[type="number"]:focus {
 .summary-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 10px; }
 .badge-group { display: flex; gap: 8px; flex-wrap: wrap; }
 .badge-group .badge { background: linear-gradient(135deg,#3DAA6E,#56D18A); }
+.copy-btn-group { display: flex; gap: 8px; flex-shrink: 0; }
+.copy-btn-group .btn-icon.hidden { display: none; }
 .badge-money { background: linear-gradient(135deg,#F5A623,#FFC85C) !important; }
 
 .price-row {
@@ -356,6 +358,43 @@ input[type="date"]:focus, input[type="time"]:focus, input[type="number"]:focus {
 
 .empty-summary { text-align: center; color: var(--muted); padding: 24px; font-weight: 600; font-size: 0.9rem; }
 
+/* ---------- Detail list: search ---------- */
+.detail-search-row {
+  position: relative;
+  margin-bottom: 10px;
+}
+.detail-search-row input[type="text"] {
+  margin: 0;
+  padding-right: 40px;
+}
+.btn-clear-search {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 26px; height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: var(--border);
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+}
+.btn-clear-search:hover { background: var(--red); }
+.btn-clear-search.hidden { display: none; }
+.detail-search-info {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.detail-search-info.hidden { display: none; }
+
 /* ---------- Detail list ---------- */
 .detail-item {
   background: var(--bg);
@@ -364,17 +403,58 @@ input[type="date"]:focus, input[type="time"]:focus, input[type="number"]:focus {
   padding: 13px 16px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   margin-bottom: 8px;
 }
-.detail-item .di-info { min-width: 0; }
+.detail-item .di-info { min-width: 0; flex: 1; }
 .detail-item .di-name { font-weight: 700; font-size: 0.92rem; color: var(--text); }
 .detail-item .di-dish { font-size: 0.85rem; color: var(--primary); font-weight: 600; margin-top: 2px; }
 .detail-item .di-note { font-size: 0.76rem; color: var(--muted); font-style: italic; margin-top: 2px; }
 .detail-item .di-meta { text-align: right; flex-shrink: 0; }
 .detail-item .di-time { font-size: 0.76rem; color: var(--muted); font-weight: 600; }
 .detail-item .di-date { font-size: 0.72rem; color: #C5B5AA; margin-top: 2px; }
+
+.detail-item .di-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.detail-item .di-act-btn {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  background: white;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: 0.2s;
+  padding: 0;
+  flex-shrink: 0;
+}
+.detail-item .di-act-btn.edit:hover { border-color: var(--primary); background: rgba(232,87,42,0.08); }
+.detail-item .di-act-btn.del { color: var(--red); }
+.detail-item .di-act-btn.del:hover { border-color: var(--red); background: rgba(229,62,62,0.08); }
+
+/* ---------- Detail list: inline edit form ---------- */
+.detail-item.editing {
+  align-items: stretch;
+  border-color: var(--primary);
+  background: white;
+}
+.di-edit-form { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.di-edit-loading { width: 100%; text-align: center; padding: 6px; font-size: 0.85rem; font-weight: 700; color: var(--primary); }
+.di-edit-name { font-weight: 700; font-size: 0.85rem; color: var(--primary); }
+.di-edit-form select, .di-edit-form input[type="text"] { margin: 0; }
+.di-edit-actions { display: flex; gap: 8px; margin-top: 2px; }
+.di-edit-actions button {
+  flex: 1;
+  border: none;
+  border-radius: 8px;
+  padding: 9px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.btn-di-save { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; }
+.btn-di-save:hover { opacity: 0.9; }
+.btn-di-cancel { background: var(--bg); color: var(--muted); border: 2px solid var(--border) !important; }
+.btn-di-cancel:hover { border-color: var(--muted) !important; }
 
 /* ---------- Add-for-other form (collapsible) ---------- */
 .btn-toggle-add {
