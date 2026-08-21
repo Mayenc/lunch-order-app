@@ -247,7 +247,7 @@ async function scanMenu(file){
     lines.forEach(line => menuGroups[detectGroup(line)].push(line))
 
     renderMenuLines()
-    renderAdminAddFoodSelect()
+    syncAddFoodSelectIfToday()
     localStorage.setItem("menuImage", menuImage)
   }catch(e){
     console.log("OCR error", e)
@@ -301,7 +301,7 @@ function updateLine(group, i, val){ menuGroups[group][i] = val }
 function removeLine(group, i){
   menuGroups[group].splice(i, 1)
   renderMenuLines()
-  renderAdminAddFoodSelect()
+  syncAddFoodSelectIfToday()
 }
 
 function moveItem(fromGroup, index, toGroup){
@@ -310,7 +310,7 @@ function moveItem(fromGroup, index, toGroup){
   menuGroups[fromGroup].splice(index, 1)
   menuGroups[toGroup].push(item)
   renderMenuLines()
-  renderAdminAddFoodSelect()
+  syncAddFoodSelectIfToday()
 }
 
 /* ================= SAVE MENU / CONFIG ================= */
@@ -351,7 +351,7 @@ async function loadMenuAdminFromSheet(){
     menuGroups = data || { "🍚 Cơm": [], "🍜 Bún/Phở": [], "🥗 Khác": [] }
 
     renderMenuLines()
-    renderAdminAddFoodSelect()
+    syncAddFoodSelectIfToday()
   }catch(e){
     console.log("Load menu error", e)
   }
@@ -430,7 +430,13 @@ function initOrdersHandlers(){
   if(addBtn) addBtn.onclick = adminAddOrder
 
   const dateInput = document.getElementById("adminAddDate")
-  if(dateInput) dateInput.value = todayVN()
+  if(dateInput){
+    dateInput.value = todayVN()
+    dateInput.addEventListener("change", () => {
+      loadMenuForAddForm(dateInput.value || todayVN())
+      document.getElementById("adminAddFood").value = ""
+    })
+  }
 
   const toggleBtn = document.getElementById("toggleAddOther")
   const panel = document.getElementById("addOtherPanel")
@@ -502,14 +508,15 @@ function renderAdminAddUserSelect(){
   })
 }
 
-function renderAdminAddFoodSelect(){
+function renderAdminAddFoodSelect(groups){
+  const src = groups || menuGroups
   const el = document.getElementById("adminAddFood")
   if(!el) return
   el.innerHTML = `<option value="">— Chọn món —</option>`
-  Object.keys(menuGroups).forEach(group => {
+  Object.keys(src).forEach(group => {
     const optGroup = document.createElement("optgroup")
     optGroup.label = group
-    menuGroups[group].forEach(d => {
+    src[group].forEach(d => {
       if(!d) return
       const op = document.createElement("option")
       op.value = d
@@ -518,6 +525,56 @@ function renderAdminAddFoodSelect(){
     })
     el.appendChild(optGroup)
   })
+}
+
+/* Only auto-refresh the "add for other" food list from the Manage tab's
+   (unsaved) edits when the add-form date is today — otherwise the dropdown
+   is showing a different date's menu and must stay untouched. */
+function syncAddFoodSelectIfToday(){
+  const dateInput = document.getElementById("adminAddDate")
+  const isToday = !dateInput || !dateInput.value || dateInput.value === todayVN()
+  if(isToday) renderAdminAddFoodSelect(menuGroups)
+}
+
+/* ---- Load & cache the menu of whichever date is picked in the "add for
+   someone else" form, so the food dropdown always matches that date ---- */
+const addFormMenuCache = {}
+
+async function loadMenuForAddForm(date){
+  const foodSel = document.getElementById("adminAddFood")
+  if(!foodSel) return
+
+  // today's menu is already loaded in memory — no need to refetch
+  if(date === todayVN()){
+    renderAdminAddFoodSelect(menuGroups)
+    return
+  }
+
+  if(addFormMenuCache[date]){
+    renderAdminAddFoodSelect(addFormMenuCache[date])
+    return
+  }
+
+  foodSel.disabled = true
+  foodSel.innerHTML = `<option value="">Đang tải menu ngày ${date}...</option>`
+
+  try{
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=loadMenu&date=${date}`)
+    const data = await res.json()
+    const groups = (data && Object.keys(data).length) ? data : { "🍚 Cơm": [], "🍜 Bún/Phở": [], "🥗 Khác": [] }
+
+    addFormMenuCache[date] = groups
+    renderAdminAddFoodSelect(groups)
+
+    const hasAnyDish = Object.values(groups).some(arr => arr.length > 0)
+    if(!hasAnyDish) showToast(`Chưa có menu lưu cho ngày ${date}`, "info")
+  }catch(e){
+    console.log("Load menu for date error", e)
+    renderAdminAddFoodSelect(menuGroups)
+    showToast("Không tải được menu ngày đã chọn", "error")
+  }finally{
+    foodSel.disabled = false
+  }
 }
 
 /* ================= DATE FILTER (day mode) ================= */
