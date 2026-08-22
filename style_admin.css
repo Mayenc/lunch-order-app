@@ -241,6 +241,8 @@ input[type="date"]:focus, input[type="time"]:focus, input[type="number"]:focus {
 
 .filter-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .filter-row.hidden { display: none; }
+#createWeekSheetBtn.hidden { display: none; }
+#createWeekSheetBtn.full { margin-top: 0; margin-bottom: 16px; }
 .filter-row select { margin: 0; }
 .btn-nav {
   border: 2px solid var(--border);

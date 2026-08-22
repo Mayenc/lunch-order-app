@@ -2,7 +2,7 @@
    ADMIN APP LOGIC
 ========================================================= */
 
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFvi0n2mszdHsn5C_HRn544L28U1hBM8cicXv3NVl4LwA8WQf2j45XL5mQFlYhEch4rQ/exec"
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwifgjCGeVBQGTWzHPaqFszXA_h0OX5GA20g6iQ9bUZQB2HYXdUyiHWgbNJzpKJUiaumA/exec"
 
 let orders = []
 let users = []
@@ -21,6 +21,7 @@ let unitPrice = 35000
 let currentSummaryText = ""    // text used by the "copy summary" button
 let weekDayBreakdownText = ""  // text used by the "copy by-day" button (week mode only)
 let currentFiltered = []       // orders currently shown, used by export
+let currentWeekStart = null    // ISO date (Monday) of the week currently displayed
 
 let editingDetailId = null     // orderId currently being edited inline in the detail list
 let editingDetailMenu = null   // menu options loaded for that order's date
@@ -108,6 +109,11 @@ function fmtDMY(d){
   const dd = String(d.getDate()).padStart(2,"0")
   const mm = String(d.getMonth()+1).padStart(2,"0")
   return `${dd}/${mm}`
+}
+function fmtDDMMCompact(d){
+  const dd = String(d.getDate()).padStart(2,"0")
+  const mm = String(d.getMonth()+1).padStart(2,"0")
+  return `${dd}${mm}`
 }
 function fmtMoney(n){
   return n.toLocaleString("vi-VN") + "đ"
@@ -439,6 +445,9 @@ function initOrdersHandlers(){
   const copyDayBtn = document.getElementById("copyDaySummary")
   if(copyDayBtn) copyDayBtn.onclick = copyDaySummary
 
+  const createWeekBtn = document.getElementById("createWeekSheetBtn")
+  if(createWeekBtn) createWeekBtn.onclick = createWeekTotalSheet
+
   const exportBtn = document.getElementById("exportTxt")
   if(exportBtn) exportBtn.onclick = exportTxtFile
 
@@ -653,6 +662,9 @@ function renderAdminOrders(){
   const copyDayBtn = document.getElementById("copyDaySummary")
   if(copyDayBtn) copyDayBtn.classList.toggle("hidden", currentMode !== "week")
 
+  const createWeekBtn = document.getElementById("createWeekSheetBtn")
+  if(createWeekBtn) createWeekBtn.classList.toggle("hidden", currentMode !== "week")
+
   let filtered = []
   let weekStart = null, weekEnd = null
 
@@ -670,6 +682,12 @@ function renderAdminOrders(){
 
     const label = document.getElementById("weekLabel")
     if(label) label.innerText = `${fmtDMY(start)} - ${fmtDMY(end)}`
+
+    currentWeekStart = weekStart
+    if(createWeekBtn){
+      const friday = addDays(start, 4)
+      createWeekBtn.innerText = `📊 Tạo sheet "Total (${fmtDDMMCompact(start)}-${fmtDDMMCompact(friday)})"`
+    }
   }
 
   currentFiltered = filtered
@@ -972,6 +990,34 @@ function copyDaySummary(){
   navigator.clipboard.writeText(weekDayBreakdownText)
     .then(() => showToast("Đã copy tổng hợp theo ngày!", "success"))
     .catch(() => showToast("Copy thất bại", "error"))
+}
+
+/* ================= CREATE WEEKLY TOTAL SHEET (Google Sheet) ================= */
+
+async function createWeekTotalSheet(){
+  if(!currentWeekStart){ showToast("Chưa xác định được tuần đang xem", "error"); return }
+
+  const btn = document.getElementById("createWeekSheetBtn")
+  const label = btn ? btn.innerText : ""
+
+  if(!confirm(`Tạo sheet tổng hợp cho tuần này?\n${label}\n\nLưu ý: nếu sheet đã tồn tại thì sẽ không tạo đè.`)) return
+
+  showLoading("Đang tạo sheet tổng hợp tuần...")
+  try{
+    // POST dùng mode "no-cors" (giống các API khác trong app) nên không đọc
+    // được kết quả trả về — coi như đã gửi yêu cầu thành công, admin tự
+    // kiểm tra lại trong Google Sheet.
+    await fetch(APPS_SCRIPT_URL, {
+      method: "POST", mode: "no-cors",
+      body: JSON.stringify({ action: "createWeekTotalSheet", monday: currentWeekStart })
+    })
+    showToast("Đã gửi yêu cầu tạo sheet! Kiểm tra lại trong Google Sheet.", "success")
+  }catch(e){
+    console.log("createWeekTotalSheet error", e)
+    showToast("Tạo sheet thất bại", "error")
+  }finally{
+    hideLoading()
+  }
 }
 
 /* ================= EXPORT TXT ================= */

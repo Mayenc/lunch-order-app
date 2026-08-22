@@ -916,7 +916,7 @@ async function readSheet(){
 
 try{
 
-const res = await fetch("https://script.google.com/macros/s/AKfycbwFvi0n2mszdHsn5C_HRn544L28U1hBM8cicXv3NVl4LwA8WQf2j45XL5mQFlYhEch4rQ/exec?action=loadOrders")
+const res = await fetch("https://script.google.com/macros/s/AKfycbwifgjCGeVBQGTWzHPaqFszXA_h0OX5GA20g6iQ9bUZQB2HYXdUyiHWgbNJzpKJUiaumA/exec?action=loadOrders")
 const data = await res.json()
 console.log("data order: ",data)
 orders = data
@@ -943,7 +943,7 @@ console.log("Sheet error",e)
 
 async function writeSheet(orderId, deviceId, userId, name, dish, note, date, time){
 
-await fetch("https://script.google.com/macros/s/AKfycbwFvi0n2mszdHsn5C_HRn544L28U1hBM8cicXv3NVl4LwA8WQf2j45XL5mQFlYhEch4rQ/exec",{
+await fetch("https://script.google.com/macros/s/AKfycbwifgjCGeVBQGTWzHPaqFszXA_h0OX5GA20g6iQ9bUZQB2HYXdUyiHWgbNJzpKJUiaumA/exec",{
 method:"POST",
 mode:"no-cors",
 body:JSON.stringify({
@@ -963,7 +963,7 @@ time
 
 async function updateSheet(orderId, userId, name, dish, note, date, time){
 
-await fetch("https://script.google.com/macros/s/AKfycbwFvi0n2mszdHsn5C_HRn544L28U1hBM8cicXv3NVl4LwA8WQf2j45XL5mQFlYhEch4rQ/exec",{
+await fetch("https://script.google.com/macros/s/AKfycbwifgjCGeVBQGTWzHPaqFszXA_h0OX5GA20g6iQ9bUZQB2HYXdUyiHWgbNJzpKJUiaumA/exec",{
 method:"POST",
 mode:"no-cors",
 body:JSON.stringify({
@@ -982,7 +982,7 @@ time
 
 async function deleteSheet(orderId){
 showLoading()
-await fetch("https://script.google.com/macros/s/AKfycbwFvi0n2mszdHsn5C_HRn544L28U1hBM8cicXv3NVl4LwA8WQf2j45XL5mQFlYhEch4rQ/exec",{
+await fetch("https://script.google.com/macros/s/AKfycbwifgjCGeVBQGTWzHPaqFszXA_h0OX5GA20g6iQ9bUZQB2HYXdUyiHWgbNJzpKJUiaumA/exec",{
 method:"POST",
 mode:"no-cors",
 body:JSON.stringify({
@@ -1000,7 +1000,7 @@ async function saveMenuToSheet(){
     const vn = new Date(now.getTime() + 7*60*60*1000)
     const today = vn.toISOString().split('T')[0]
 
-    // await fetch("https://script.google.com/macros/s/AKfycbwFvi0n2mszdHsn5C_HRn544L28U1hBM8cicXv3NVl4LwA8WQf2j45XL5mQFlYhEch4rQ/exec",{
+    // await fetch("https://script.google.com/macros/s/AKfycbwifgjCGeVBQGTWzHPaqFszXA_h0OX5GA20g6iQ9bUZQB2HYXdUyiHWgbNJzpKJUiaumA/exec",{
     //     method:"POST",
     //     mode:"no-cors",
     //     body: JSON.stringify({
@@ -1016,7 +1016,7 @@ async function saveMenuToSheet(){
     const deadline = document.getElementById("deadline").value
 
     // ===== SAVE MENU (cũ của bạn) =====
-    await fetch("https://script.google.com/macros/s/AKfycbwFvi0n2mszdHsn5C_HRn544L28U1hBM8cicXv3NVl4LwA8WQf2j45XL5mQFlYhEch4rQ/exec", {
+    await fetch("https://script.google.com/macros/s/AKfycbwifgjCGeVBQGTWzHPaqFszXA_h0OX5GA20g6iQ9bUZQB2HYXdUyiHWgbNJzpKJUiaumA/exec", {
         method: "POST",
         mode:"no-cors",
         body: JSON.stringify({
@@ -1027,7 +1027,7 @@ async function saveMenuToSheet(){
     })
 
     // ===== SAVE CONFIG (THÊM) =====
-    await fetch("https://script.google.com/macros/s/AKfycbwFvi0n2mszdHsn5C_HRn544L28U1hBM8cicXv3NVl4LwA8WQf2j45XL5mQFlYhEch4rQ/exec", {
+    await fetch("https://script.google.com/macros/s/AKfycbwifgjCGeVBQGTWzHPaqFszXA_h0OX5GA20g6iQ9bUZQB2HYXdUyiHWgbNJzpKJUiaumA/exec", {
         method: "POST",
         mode:"no-cors",
         body: JSON.stringify({
@@ -1048,7 +1048,7 @@ async function loadMenuFromSheet(){
 
     try{
 
-        const url = `https://script.google.com/macros/s/AKfycbwFvi0n2mszdHsn5C_HRn544L28U1hBM8cicXv3NVl4LwA8WQf2j45XL5mQFlYhEch4rQ/exec?action=loadMenu&date=${today}`
+        const url = `https://script.google.com/macros/s/AKfycbwifgjCGeVBQGTWzHPaqFszXA_h0OX5GA20g6iQ9bUZQB2HYXdUyiHWgbNJzpKJUiaumA/exec?action=loadMenu&date=${today}`
 
         const res = await fetch(url)
 
@@ -1077,7 +1077,7 @@ async function loadMenuAdminFromSheet(dateParam = null){
 
     try{
 
-        const url = `https://script.google.com/macros/s/AKfycbwFvi0n2mszdHsn5C_HRn544L28U1hBM8cicXv3NVl4LwA8WQf2j45XL5mQFlYhEch4rQ/exec?action=loadMenu&date=${today}`
+        const url = `https://script.google.com/macros/s/AKfycbwifgjCGeVBQGTWzHPaqFszXA_h0OX5GA20g6iQ9bUZQB2HYXdUyiHWgbNJzpKJUiaumA/exec?action=loadMenu&date=${today}`
 
         const res = await fetch(url)
         const data = await res.json()
@@ -1106,7 +1106,7 @@ async function loadConfig(){
 
     try{
 
-        const res = await fetch(`https://script.google.com/macros/s/AKfycbwFvi0n2mszdHsn5C_HRn544L28U1hBM8cicXv3NVl4LwA8WQf2j45XL5mQFlYhEch4rQ/exec?action=loadConfig`)
+        const res = await fetch(`https://script.google.com/macros/s/AKfycbwifgjCGeVBQGTWzHPaqFszXA_h0OX5GA20g6iQ9bUZQB2HYXdUyiHWgbNJzpKJUiaumA/exec?action=loadConfig`)
         const data = await res.json()
 
         console.log("config:", data)
@@ -1130,7 +1130,7 @@ async function loadUsers(){
 
     try{
 
-        const res = await fetch(`https://script.google.com/macros/s/AKfycbwFvi0n2mszdHsn5C_HRn544L28U1hBM8cicXv3NVl4LwA8WQf2j45XL5mQFlYhEch4rQ/exec?action=loadUsers`)
+        const res = await fetch(`https://script.google.com/macros/s/AKfycbwifgjCGeVBQGTWzHPaqFszXA_h0OX5GA20g6iQ9bUZQB2HYXdUyiHWgbNJzpKJUiaumA/exec?action=loadUsers`)
         const data = await res.json()
         console.log("data user: ", data)
         users = data || []
